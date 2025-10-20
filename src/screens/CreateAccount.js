@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { ScrollView, View, Text, Image } from 'react-native';
 import { TextInput, Button } from 'react-native-paper';
-import styles from '../styles/styles';
+import CreateAccountStyles from '../styles/createAccuntStyles';
 
 export default function CreateAccount({ navigation }) {
     const [name, setName] = useState('');
@@ -9,29 +9,29 @@ export default function CreateAccount({ navigation }) {
     const [dateOfBirth, setDateOfBirth] = useState('');
 
     return (
-        <ScrollView contentContainerStyle={styles.container}>
+        <ScrollView contentContainerStyle={CreateAccountStyles.container}>
             {/* Logo Section */}
-            <View style={styles.logoContainer}>
+            <View style={CreateAccountStyles.logoContainer}>
                 <Image 
                     source={require('../assets/img/logoTW.png')} 
-                    style={styles.logo} 
+                    style={CreateAccountStyles.logo} 
                 />
             </View>
 
             {/* Title */}
-            <Text style={styles.createAccountTitle}>Create your account</Text>
+            <Text style={CreateAccountStyles.title}>Create your account</Text>
 
             {/* Form */}
-            <View style={styles.formContainer}>
+            <View style={CreateAccountStyles.formContainer}>
                 {/* Name Input */}
-                <View style={styles.inputContainer}>
+                <View style={CreateAccountStyles.inputContainer}>
                     <TextInput
                         label="Name"
                         mode="outlined"
                         value={name}
                         onChangeText={setName}
-                        style={styles.textInput}
-                        outlineStyle={styles.inputOutline}
+                        style={CreateAccountStyles.textInput}
+                        outlineStyle={CreateAccountStyles.inputOutline}
                         theme={{
                             colors: {
                                 primary: '#9e3d9c',
@@ -41,20 +41,20 @@ export default function CreateAccount({ navigation }) {
                             }
                         }}
                     />
-                    <Text style={styles.characterCounter}>
+                    <Text style={CreateAccountStyles.characterCounter}>
                         {name.length}/50
                     </Text>
                 </View>
 
                 {/* Phone/Email Input */}
-                <View style={styles.inputContainer}>
+                <View style={CreateAccountStyles.inputContainer}>
                     <TextInput
                         label="Phone number or email address"
                         mode="outlined"
                         value={email}
                         onChangeText={setEmail}
-                        style={styles.textInput}
-                        outlineStyle={styles.inputOutline}
+                        style={CreateAccountStyles.textInput}
+                        outlineStyle={CreateAccountStyles.inputOutline}
                         theme={{
                             colors: {
                                 primary: '#9e3d9c',
@@ -67,14 +67,14 @@ export default function CreateAccount({ navigation }) {
                 </View>
 
                 {/* Date of Birth Input */}
-                <View style={styles.inputContainer}>
+                <View style={CreateAccountStyles.inputContainer}>
                     <TextInput
                         label="Date of birth"
                         mode="outlined"
                         value={dateOfBirth}
                         onChangeText={setDateOfBirth}
-                        style={styles.textInput}
-                        outlineStyle={styles.inputOutline}
+                        style={CreateAccountStyles.textInput}
+                        outlineStyle={CreateAccountStyles.inputOutline}
                         theme={{
                             colors: {
                                 primary: '#9e3d9c',
@@ -89,9 +89,9 @@ export default function CreateAccount({ navigation }) {
                 {/* Next Button */}
                 <Button
                     mode="contained"
-                    style={styles.nextButton}
-                    contentStyle={styles.buttonContent}
-                    labelStyle={styles.nextButtonLabel}
+                    style={CreateAccountStyles.nextButton}
+                    contentStyle={CreateAccountStyles.buttonContent}
+                    labelStyle={CreateAccountStyles.nextButtonLabel}
                     onPress={() => {}}
                 >
                     Next

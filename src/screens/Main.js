@@ -1,32 +1,32 @@
 import React from 'react';
 import { ScrollView, View, Text, Image } from 'react-native';
 import { Button } from 'react-native-paper';
-import styles from '../styles/styles';
+import mainStyles from '../styles/mainStyles';
 
 export default function Main({ navigation }) {
 
 
 
     return (
-        <ScrollView contentContainerStyle={styles.container}>
+        <ScrollView contentContainerStyle={mainStyles.container}>
 
             {/* Logo Section */}
-            <View style={styles.logoContainer}>
-                <Image source={require('../assets/img/logoTW.png')} style={styles.logo} />
+            <View style={mainStyles.logoContainer}>
+                <Image source={require('../assets/img/logoTW.png')} style={mainStyles.logo} />
             </View>
 
             {/* Title Section */}
-            <Text style={styles.title}>See what's happening in the world right now.</Text>
+            <Text style={mainStyles.title}>See what's happening in the world right now.</Text>
 
             {/* Buttons Section */}
-            <View style={styles.buttonsContainer}>
+            <View style={mainStyles.buttonsContainer}>
 
                 {/* Google Sign-In Button (Not functional)*/}
                 <Button
                     mode="contained"
-                    style={styles.googleButton}
-                    contentStyle={styles.buttonContent}
-                    labelStyle={styles.googleButtonLabel}
+                    style={mainStyles.googleButton}
+                    contentStyle={mainStyles.buttonContent}
+                    labelStyle={mainStyles.googleButtonLabel}
                     icon={require('../assets/img/googleicon.png')}
                     onPress={() => { }}
                 >
@@ -34,33 +34,33 @@ export default function Main({ navigation }) {
                 </Button>
 
                 {/* Divider */}
-                <View style={styles.dividerContainer}>
-                    <View style={styles.dividerLine} />
-                    <Text style={styles.dividerText}>or</Text>
-                    <View style={styles.dividerLine} />
+                <View style={mainStyles.dividerContainer}>
+                    <View style={mainStyles.dividerLine} />
+                    <Text style={mainStyles.dividerText}>or</Text>
+                    <View style={mainStyles.dividerLine} />
                 </View>
 
                 {/* Create Account Button */}
                 <Button
                     mode="contained"
-                    style={styles.createAccountButton}
-                    contentStyle={styles.buttonContent}
-                    labelStyle={styles.createAccountButtonLabel}
+                    style={mainStyles.createAccountButton}
+                    contentStyle={mainStyles.buttonContent}
+                    labelStyle={mainStyles.createAccountButtonLabel}
                     onPress={() => { }}
                 >
                     Create account
                 </Button>
 
                 {/* Terms and Conditions Text */}
-                <Text style={styles.termsText}>
+                <Text style={mainStyles.termsText}>
                     By signing up, you agree to our Terms, Privacy Policy, and Cookie Use.
                 </Text>
             </View>
 
             {/* Login Section */}
-            <View style={styles.loginContainer}>
-                <Text style={styles.loginText}>Have an account already? </Text>
-                <Text style={styles.loginLink}>Log in</Text>
+            <View style={mainStyles.loginContainer}>
+                <Text style={mainStyles.loginText}>Have an account already? </Text>
+                <Text style={mainStyles.loginLink}>Log in</Text>
             </View>
         </ScrollView>
     );
