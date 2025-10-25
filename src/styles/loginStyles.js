@@ -50,9 +50,20 @@ const loginStyles = StyleSheet.create({
         marginTop: theme.Spacing.medium,
     },
 
+    backButton: {
+        ...baseStyles.button,
+        ...baseStyles.buttonSecondary,
+        marginTop: theme.Spacing.medium,
+    },
+
     nextButtonLabel: {
         ...baseStyles.buttonLabel,
         ...baseStyles.buttonLabelPrimary,
+    },
+
+    backButtonLabel: {
+        ...baseStyles.buttonLabel,
+        ...baseStyles.buttonLabelSecondary,
     },
 });
 

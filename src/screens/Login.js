@@ -18,7 +18,7 @@ export default function Login({ navigation }) {
             </View>
 
             {/* Title */}
-            <Text style={loginStyles.title}>Create your account</Text>
+            <Text style={loginStyles.title}>Login</Text>
 
             {/* Form */}
             <View style={loginStyles.formContainer}>
@@ -71,6 +71,16 @@ export default function Login({ navigation }) {
                     onPress={() => {}}
                 >
                     Next
+                </Button>
+                {/* Back Button */}
+                <Button
+                    mode="contained"
+                    style={loginStyles.backButton}
+                    contentStyle={loginStyles.buttonContent}
+                    labelStyle={loginStyles.backButtonLabel}
+                    onPress={() => {}}
+                >
+                    Back
                 </Button>
             </View>
         </ScrollView>

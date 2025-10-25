@@ -5,6 +5,7 @@ import { PaperProvider } from 'react-native-paper';
 import Main from './src/screens/Main';
 import CreateAccount from './src/screens/CreateAccount';
 import Login from './src/screens/Login';
+import Home from './src/screens/Home';
 
 const Stack = createNativeStackNavigator();
 
@@ -16,6 +17,7 @@ export default function App() {
           <Stack.Screen name="Main" component = {Main} options={{ headerShown: false }}/>
           <Stack.Screen name="CreateAccount" component = {CreateAccount} options={{ headerShown: false }}/>
           <Stack.Screen name="Login" component = {Login} options={{ headerShown: false }}/>
+          <Stack.Screen name="Home" component = {Home} options={{ headerShown: false }}/>
         </Stack.Navigator>
       </NavigationContainer>
     </PaperProvider>
