@@ -92,7 +92,7 @@ export default function CreateAccount({ navigation }) {
                     style={CreateAccountStyles.nextButton}
                     contentStyle={CreateAccountStyles.buttonContent}
                     labelStyle={CreateAccountStyles.nextButtonLabel}
-                    onPress={() => {}}
+                    onPress={() => { navigation.navigate('Home')}}
                 >
                     Next
                 </Button>

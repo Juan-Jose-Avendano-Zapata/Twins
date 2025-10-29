@@ -4,9 +4,6 @@ import { Button } from 'react-native-paper';
 import mainStyles from '../styles/mainStyles';
 
 export default function Main({ navigation }) {
-
-
-
     return (
         <ScrollView contentContainerStyle={mainStyles.container}>
 
@@ -46,7 +43,7 @@ export default function Main({ navigation }) {
                     style={mainStyles.createAccountButton}
                     contentStyle={mainStyles.buttonContent}
                     labelStyle={mainStyles.createAccountButtonLabel}
-                    onPress={() => { }}
+                    onPress={() => { navigation.navigate('CreateAccount')}}
                 >
                     Create account
                 </Button>
@@ -60,7 +57,7 @@ export default function Main({ navigation }) {
             {/* Login Section */}
             <View style={mainStyles.loginContainer}>
                 <Text style={mainStyles.loginText}>Have an account already? </Text>
-                <Text style={mainStyles.loginLink}>Log in</Text>
+                <Text style={mainStyles.loginLink} onPress={() => navigation.navigate('Login')}>Log in</Text>
             </View>
         </ScrollView>
     );

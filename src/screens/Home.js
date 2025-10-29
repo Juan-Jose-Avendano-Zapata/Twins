@@ -37,7 +37,7 @@ const posts = [
     },
 ];
 
-export default function Home() {
+export default function Home( {navigation} ) {
     const [activeTab, setActiveTab] = useState("For you");
     const [refreshing, setRefreshing] = useState(false);
     const flatListRef = useRef(null);
@@ -134,10 +134,13 @@ export default function Home() {
 
             {/* Bottom menu */}
             <View style={homeStyles.menu}>
-                <IconButton icon="home" size={24} />
-                <IconButton icon="magnify" size={24} />
+                <IconButton icon="home" size={24} onPress={ () => navigation.navigate('Home')}/>
+                <IconButton icon="magnify" size={24} onPress={ () => navigation.navigate('Search')}/>
                 <IconButton icon="bell-outline" size={24} />
                 <IconButton icon="email-outline" size={24} />
+                {/* Use to return to the Main */}
+                <IconButton icon="logout" size={24} 
+                onPress={ () => navigation.navigate('Main')} />
             </View>
 
             {/* Floating button to create thread */}
@@ -147,6 +150,7 @@ export default function Home() {
                 style={homeStyles.fabCreate}
                 onPress={() => console.log("Create thread")}
             />
+
         </View>
     );
 }
