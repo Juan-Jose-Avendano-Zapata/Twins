@@ -1,6 +1,13 @@
 import React, { useState, useRef } from 'react';
-import { View, Text, FlatList, TouchableOpacity, Image, Keyboard } from 'react-native';
-import { TextInput, IconButton } from 'react-native-paper';
+import {
+  View,
+  Text,
+  FlatList,
+  TouchableOpacity,
+  Image,
+  Keyboard,
+} from 'react-native';
+import { TextInput, IconButton, FAB } from 'react-native-paper';
 import searchStyles from '../styles/searchStyles';
 import homeStyles from '../styles/homeStyles';
 import { theme } from '../styles/theme';
@@ -15,13 +22,12 @@ const USERS = [
 export default function Search({ navigation }) {
   const [query, setQuery] = useState('');
   const [isFocused, setIsFocused] = useState(false);
-
   const inputRef = useRef(null);
 
   const filteredUsers = USERS.filter(
-    (user) =>
+    user =>
       user.name.toLowerCase().includes(query.toLowerCase()) ||
-      user.username.toLowerCase().includes(query.toLowerCase())
+      user.username.toLowerCase().includes(query.toLowerCase()),
   );
 
   const handleCancelSearch = () => {
@@ -35,7 +41,7 @@ export default function Search({ navigation }) {
     <View style={searchStyles.container}>
       {/* HEADER */}
       <View style={homeStyles.header}>
-        {/* Mostrar ícono de perfil o flechita dependiendo del foco */}
+        {/* Ícono de perfil o flecha atrás */}
         {isFocused ? (
           <IconButton
             icon="arrow-left"
@@ -43,17 +49,14 @@ export default function Search({ navigation }) {
             onPress={handleCancelSearch}
           />
         ) : (
-          <IconButton
-            icon="account-circle-outline"
-            size={30}
-          />
+          <IconButton icon="account-circle-outline" size={30} />
         )}
 
         {/* Barra de búsqueda */}
         <View style={{ flex: 1, marginHorizontal: 8 }}>
           <TextInput
             ref={inputRef}
-            placeholder="Search users"
+            placeholder="Buscar usuarios"
             mode="outlined"
             value={query}
             onChangeText={setQuery}
@@ -72,19 +75,14 @@ export default function Search({ navigation }) {
           />
         </View>
 
-        {/* Ícono de configuración solo si no está enfocada la barra */}
-        {!isFocused && (
-          <IconButton
-            icon="cog-outline"
-            size={30}
-          />
-        )}
+        {/* Ícono de configuración solo si no está buscando */}
+        {!isFocused && <IconButton icon="cog-outline" size={30} />}
       </View>
 
       {/* RESULTADOS */}
       <FlatList
         data={filteredUsers}
-        keyExtractor={(item) => item.id}
+        keyExtractor={item => item.id}
         renderItem={({ item }) => (
           <TouchableOpacity
             style={searchStyles.userItem}
@@ -102,19 +100,43 @@ export default function Search({ navigation }) {
         )}
         ListEmptyComponent={
           <Text style={searchStyles.noResults}>
-            {query ? 'No users found.' : 'Start typing to search.'}
+            {query
+              ? 'No se encontraron usuarios.'
+              : 'Empieza a escribir para buscar.'}
           </Text>
         }
         contentContainerStyle={{ paddingTop: 10, paddingBottom: 80 }}
       />
 
+      {/* FAB: oculto mientras el campo está enfocado o hay texto */}
+      {!isFocused && query.length === 0 && (
+        <FAB
+          icon="feather"
+          color="white"
+          style={homeStyles.fabCreate}
+          onPress={() => navigation.navigate('CreatePost')}
+        />
+      )}
+
       {/* MENÚ INFERIOR */}
       <View style={homeStyles.menu}>
-        <IconButton icon="home" size={24} onPress={() => navigation.navigate('Home')} />
-        <IconButton icon="magnify" size={24} onPress={() => navigation.navigate('Search')} />
+        <IconButton
+          icon="home"
+          size={24}
+          onPress={() => navigation.navigate('Home')}
+        />
+        <IconButton
+          icon="magnify"
+          size={24}
+          onPress={() => navigation.navigate('Search')}
+        />
         <IconButton icon="bell-outline" size={24} />
         <IconButton icon="email-outline" size={24} />
-        <IconButton icon="logout" size={24} onPress={() => navigation.navigate('Main')} />
+        <IconButton
+          icon="logout"
+          size={24}
+          onPress={() => navigation.navigate('Main')}
+        />
       </View>
     </View>
   );

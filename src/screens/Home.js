@@ -95,12 +95,12 @@ export default function Home( {navigation} ) {
             >
                 {/* Header with centered logo */}
                 <View style={homeStyles.header}>
-                    <IconButton icon="account-circle-outline" size={30} />
+                    <IconButton icon="account-circle-outline" size={30} onPress={ () => navigation.navigate('Profile')}/>
                     <Image
                         source={require("../assets/img/logoTW.png")}
                         style={homeStyles.logo}
                     />
-                    <IconButton icon="cog-outline" size={30} />
+                    <IconButton icon="cog-outline" size={30} onPress={ () => navigation.navigate('Settings')}/>
                 </View>
 
                 {/* NavBar "For you" / "Following" */}
@@ -138,9 +138,6 @@ export default function Home( {navigation} ) {
                 <IconButton icon="magnify" size={24} onPress={ () => navigation.navigate('Search')}/>
                 <IconButton icon="bell-outline" size={24} />
                 <IconButton icon="email-outline" size={24} />
-                {/* Use to return to the Main */}
-                <IconButton icon="logout" size={24} 
-                onPress={ () => navigation.navigate('Main')} />
             </View>
 
             {/* Floating button to create thread */}
@@ -148,7 +145,7 @@ export default function Home( {navigation} ) {
                 icon="feather"
                 color="white"
                 style={homeStyles.fabCreate}
-                onPress={() => console.log("Create thread")}
+                onPress={() => navigation.navigate('CreatePost')}
             />
 
         </View>
