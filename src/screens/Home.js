@@ -37,7 +37,7 @@ const posts = [
     },
 ];
 
-export default function Home() {
+export default function Home( {navigation} ) {
     const [activeTab, setActiveTab] = useState("For you");
     const [refreshing, setRefreshing] = useState(false);
     const flatListRef = useRef(null);
@@ -55,7 +55,7 @@ export default function Home() {
 
     const renderPost = ({ item }) => (
         <View style={homeStyles.post}>
-            <Image source={require('../assets/img/logoTW.png')} style={homeStyles.avatar} />
+            <Image source={require('../assets/img/logoTW.png')} style={homeStyles.avatar}/>
             <View style={homeStyles.postContent}>
                 <View style={homeStyles.postHeader}>
                     <Text style={homeStyles.name}>{item.name}</Text>
@@ -95,12 +95,12 @@ export default function Home() {
             >
                 {/* Header with centered logo */}
                 <View style={homeStyles.header}>
-                    <IconButton icon="account-circle-outline" size={30} />
+                    <IconButton icon="account-circle-outline" size={30} onPress={ () => navigation.navigate('Profile')}/>
                     <Image
                         source={require("../assets/img/logoTW.png")}
                         style={homeStyles.logo}
                     />
-                    <IconButton icon="cog-outline" size={30} />
+                    <IconButton icon="cog-outline" size={30} onPress={ () => navigation.navigate('Settings')}/>
                 </View>
 
                 {/* NavBar "For you" / "Following" */}
@@ -134,8 +134,8 @@ export default function Home() {
 
             {/* Bottom menu */}
             <View style={homeStyles.menu}>
-                <IconButton icon="home" size={24} />
-                <IconButton icon="magnify" size={24} />
+                <IconButton icon="home" size={24} onPress={ () => navigation.navigate('Home')}/>
+                <IconButton icon="magnify" size={24} onPress={ () => navigation.navigate('Search')}/>
                 <IconButton icon="bell-outline" size={24} />
                 <IconButton icon="email-outline" size={24} />
             </View>
@@ -145,8 +145,9 @@ export default function Home() {
                 icon="feather"
                 color="white"
                 style={homeStyles.fabCreate}
-                onPress={() => console.log("Create thread")}
+                onPress={() => navigation.navigate('CreatePost')}
             />
+
         </View>
     );
 }

@@ -68,7 +68,7 @@ export default function Login({ navigation }) {
                     style={loginStyles.nextButton}
                     contentStyle={loginStyles.buttonContent}
                     labelStyle={loginStyles.nextButtonLabel}
-                    onPress={() => {}}
+                    onPress={() => { navigation.navigate('Home')}}
                 >
                     Next
                 </Button>
@@ -78,7 +78,7 @@ export default function Login({ navigation }) {
                     style={loginStyles.backButton}
                     contentStyle={loginStyles.buttonContent}
                     labelStyle={loginStyles.backButtonLabel}
-                    onPress={() => {}}
+                    onPress={() => { navigation.navigate('Main')}}
                 >
                     Back
                 </Button>

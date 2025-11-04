@@ -29,7 +29,7 @@ const profilePosts = [
     },
 ];
 
-export default function Profile() {
+export default function Profile( {navigation} ) {
     const [refreshing, setRefreshing] = useState(false);
     const flatListRef = useRef(null);
 
@@ -94,8 +94,8 @@ export default function Profile() {
                             style={profileStyles.coverPhoto} 
                         />
                         <View style={profileStyles.headerActions}>
-                            <IconButton icon="arrow-left" size={24} />
-                            <IconButton icon="cog-outline" size={24} />
+                            <IconButton icon="arrow-left" size={24} onPress={ () => navigation.navigate('Home')}/>
+                            <IconButton icon="cog-outline" size={24} onPress={ () => navigation.navigate('Settings')}/>
                         </View>
                     </View>
 
@@ -173,7 +173,7 @@ export default function Profile() {
                 icon="feather"
                 color="white"
                 style={profileStyles.fabCreate}
-                onPress={() => console.log("Create thread")}
+                onPress={() => navigation.navigate('CreatePost')}
             />
         </View>
     );
