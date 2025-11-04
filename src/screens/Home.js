@@ -55,7 +55,7 @@ export default function Home( {navigation} ) {
 
     const renderPost = ({ item }) => (
         <View style={homeStyles.post}>
-            <Image source={require('../assets/img/logoTW.png')} style={homeStyles.avatar} />
+            <Image source={require('../assets/img/logoTW.png')} style={homeStyles.avatar}/>
             <View style={homeStyles.postContent}>
                 <View style={homeStyles.postHeader}>
                     <Text style={homeStyles.name}>{item.name}</Text>

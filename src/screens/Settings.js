@@ -14,12 +14,12 @@ export default function Settings({ navigation }) {
           size={28}
           onPress={() => navigation.goBack()}
         />
-        <Text style={settingsStyles.title}>Configuración</Text>
-        {/* Espaciador invisible para centrar el título */}
+        <Text style={settingsStyles.title}>Settings</Text>
+        {/* Invisible spacer to center the title */}
         <View style={{ width: 40 }} />
       </View>
 
-      {/* SECCIÓN PRINCIPAL */}
+      {/* MAIN SECTION */}
       <View style={settingsStyles.content}>
         <View style={settingsStyles.option}>
           <IconButton
@@ -28,7 +28,7 @@ export default function Settings({ navigation }) {
             onPress={() => navigation.navigate("Main")}
             iconColor={theme.Colors.primary}
           />
-          <Text style={settingsStyles.optionText}>Cerrar sesión</Text>
+          <Text style={settingsStyles.optionText}>Log out</Text>
         </View>
       </View>
     </View>

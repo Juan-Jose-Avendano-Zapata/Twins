@@ -7,18 +7,18 @@ import createPostStyles from "../styles/createPostStyles";
 export default function CreatePost({ navigation }) {
     const [content, setContent] = useState("");
 
-    // Lógica para publicar tweet
+    // Logic to publish a tweet/post
     const handlePost = () => {
         if (content.trim().length === 0) {
-            Alert.alert("Error", "El mensaje no puede estar vacío.");
+            Alert.alert("Error", "The message cannot be empty.");
             return;
         }
         if (content.length > 280) {
-            Alert.alert("Error", "El tweet no puede exceder los 280 caracteres.");
+            Alert.alert("Error", "The post cannot exceed 280 characters.");
             return;
         }
 
-        // Simulación de publicación
+        // Simulated post publishing
         const newPost = {
             id: Date.now().toString(),
             name: "You",
@@ -30,14 +30,14 @@ export default function CreatePost({ navigation }) {
             likes: 0,
         };
 
-        console.log("Publicado:", newPost);
-        Alert.alert("Publicado", "Twins compartido correctamente");
+        console.log("Published:", newPost);
+        Alert.alert("Published", "Post shared successfully");
         navigation.goBack();
     };
 
     return (
         <View style={createPostStyles.container}>
-            {/* Header */}
+            {/* HEADER */}
             <View style={createPostStyles.header}>
                 <IconButton
                     icon="close"
@@ -49,16 +49,16 @@ export default function CreatePost({ navigation }) {
                     onPress={handlePost}
                     style={createPostStyles.publishButton}
                 >
-                    Publicar
+                    Publish
                 </Button>
             </View>
 
-            {/* Campo de texto */}
+            {/* TEXT FIELD */}
             <View style={createPostStyles.inputContainer}>
                 <TextInput
                     style={createPostStyles.input}
                     multiline
-                    placeholder="¿Qué está pasando?"
+                    placeholder="What’s happening?"
                     placeholderTextColor={theme.Colors.text.secondary}
                     value={content}
                     onChangeText={setContent}
@@ -66,7 +66,7 @@ export default function CreatePost({ navigation }) {
                 />
             </View>
 
-            {/* Contador de caracteres */}
+            {/* CHARACTER COUNTER */}
             <View style={createPostStyles.actions}>
                 <Text style={createPostStyles.counter}>{content.length}/280</Text>
             </View>
