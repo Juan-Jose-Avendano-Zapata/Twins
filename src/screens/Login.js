@@ -4,7 +4,7 @@ import { TextInput, Button } from 'react-native-paper';
 import loginStyles from '../styles/loginStyles';
 
 export default function Login({ navigation }) {
-    const [email, setEmail] = useState('');
+    const [nickname, setNickName] = useState('');
     const [password, setPassword] = useState('');
 
     return (
@@ -22,13 +22,13 @@ export default function Login({ navigation }) {
 
             {/* Form */}
             <View style={loginStyles.formContainer}>
-                {/* Email Input */}
+                {/* @Nickname Input */}
                 <View style={loginStyles.inputContainer}>
                     <TextInput
-                        label="Email address"
+                        label="@Nickname"
                         mode="outlined"
-                        value={email}
-                        onChangeText={setEmail}
+                        value={nickname}
+                        onChangeText={setNickName}
                         style={loginStyles.textInput}
                         outlineStyle={loginStyles.inputOutline}
                         theme={{

@@ -144,12 +144,6 @@ export default function Search({ navigation }) {
           onPress={() => navigation.navigate('Search')}
         />
         <IconButton icon="bell-outline" size={24} />
-        <IconButton icon="email-outline" size={24} />
-        <IconButton
-          icon="logout"
-          size={24}
-          onPress={() => navigation.navigate('Main')}
-        />
       </View>
     </View>
   );

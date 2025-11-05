@@ -6,7 +6,8 @@ import CreateAccountStyles from '../styles/createAccuntStyles';
 export default function CreateAccount({ navigation }) {
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
-    const [dateOfBirth, setDateOfBirth] = useState('');
+    const [nickname, setNickName] = useState('');
+    const [password, setPassword] = useState('');
 
     return (
         <ScrollView contentContainerStyle={CreateAccountStyles.container}>
@@ -46,10 +47,10 @@ export default function CreateAccount({ navigation }) {
                     </Text>
                 </View>
 
-                {/* Phone/Email Input */}
+                {/* Email Input */}
                 <View style={CreateAccountStyles.inputContainer}>
                     <TextInput
-                        label="Phone number or email address"
+                        label="Email address"
                         mode="outlined"
                         value={email}
                         onChangeText={setEmail}
@@ -66,13 +67,33 @@ export default function CreateAccount({ navigation }) {
                     />
                 </View>
 
-                {/* Date of Birth Input */}
+                {/* Nickname Input */}
                 <View style={CreateAccountStyles.inputContainer}>
                     <TextInput
-                        label="Date of birth"
+                        label="@Nickname"
                         mode="outlined"
-                        value={dateOfBirth}
-                        onChangeText={setDateOfBirth}
+                        value={nickname}
+                        onChangeText={setNickName}
+                        style={CreateAccountStyles.textInput}
+                        outlineStyle={CreateAccountStyles.inputOutline}
+                        theme={{
+                            colors: {
+                                primary: '#9e3d9c',
+                                background: 'transparent',
+                                text: 'white',
+                                placeholder: '#71767B'
+                            }
+                        }}
+                    />
+                </View>
+
+                {/* Password Input */}
+                <View style={CreateAccountStyles.inputContainer}>
+                    <TextInput
+                        label="password"
+                        mode="outlined"
+                        value={password}
+                        onChangeText={setPassword}
                         style={CreateAccountStyles.textInput}
                         outlineStyle={CreateAccountStyles.inputOutline}
                         theme={{
@@ -95,6 +116,17 @@ export default function CreateAccount({ navigation }) {
                     onPress={() => { navigation.navigate('Home')}}
                 >
                     Next
+                </Button>
+
+                {/* Back Button */}
+                <Button
+                    mode="contained"
+                    style={CreateAccountStyles.backButton}
+                    contentStyle={CreateAccountStyles.buttonContent}
+                    labelStyle={CreateAccountStyles.backButtonLabel}
+                    onPress={() => { navigation.navigate('Main')}}
+                >
+                    Back
                 </Button>
             </View>
         </ScrollView>

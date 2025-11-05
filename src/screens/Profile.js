@@ -9,7 +9,7 @@ const profilePosts = [
         id: "1",
         name: "Official Twins",
         username: "@twins",
-        time: "2h",
+        time: "19 Oct 25",
         content: "Welcome to Twins, the new social media app for everyone!",
         image: "https://placekitten.com/400/300",
         comments: 5,
@@ -20,7 +20,7 @@ const profilePosts = [
         id: "2",
         name: "Official Twins",
         username: "@twins",
-        time: "2h",
+        time: "19 Oct 25",
         content: "Welcome to Twins, the new social media app for everyone!",
         image: "https://placekitten.com/400/300",
         comments: 5,
@@ -129,19 +129,21 @@ export default function Profile( {navigation} ) {
                                 </View>
                                 <View style={profileStyles.infoItem}>
                                     <IconButton icon="calendar" size={16} />
-                                    <Text style={profileStyles.infoText}>Joined octubre de 2025</Text>
+                                    <Text style={profileStyles.infoText}>Joined October, 2025</Text>
                                 </View>
                             </View>
 
                             {/* Follow Stats */}
                             <View style={profileStyles.followStatsContainer}>
-                                <TouchableOpacity style={profileStyles.followStat}>
+                                <TouchableOpacity style={profileStyles.followStat} 
+                                    onPress={() => navigation.navigate('ListFollow', { initialTab: 'followed' })}>
                                     <Text style={profileStyles.followCount}>17</Text>
-                                    <Text style={profileStyles.followLabel}>Siguiendo</Text>
+                                    <Text style={profileStyles.followLabel}>Followed</Text>
                                 </TouchableOpacity>
-                                <TouchableOpacity style={profileStyles.followStat}>
+                                <TouchableOpacity style={profileStyles.followStat} 
+                                    onPress={ () => navigation.navigate('ListFollow', { initialTab: 'followers' } )}>
                                     <Text style={profileStyles.followCount}>1</Text>
-                                    <Text style={profileStyles.followLabel}>Seguidor</Text>
+                                    <Text style={profileStyles.followLabel}>Followers</Text>
                                 </TouchableOpacity>
                             </View>
 

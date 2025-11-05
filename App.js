@@ -10,6 +10,7 @@ import Search from './src/screens/Search'
 import Profile from './src/screens/Profile';
 import CreatePost from './src/screens/CreatePost';
 import Settings from './src/screens/Settings';
+import ListFollow from './src/screens/ListFollow';
 
 const Stack = createNativeStackNavigator();
 
@@ -17,7 +18,7 @@ export default function App() {
   return (
     <PaperProvider>
       <NavigationContainer>
-        <Stack.Navigator initialRouteName="Profile">
+        <Stack.Navigator initialRouteName="Main">
           <Stack.Screen name="Main" component = {Main} options={{ headerShown: false }}/>
           <Stack.Screen name="CreateAccount" component = {CreateAccount} options={{ headerShown: false }}/>
           <Stack.Screen name="Login" component = {Login} options={{ headerShown: false }}/>
@@ -26,6 +27,7 @@ export default function App() {
           <Stack.Screen name='Profile' component={Profile} options={{ headerShown: false }} />
           <Stack.Screen name='CreatePost' component={CreatePost} options={{ headerShown: false }} />
           <Stack.Screen name='Settings' component={Settings} options={{ headerShown: false }} />
+          <Stack.Screen name='ListFollow' component={ListFollow} options={{ headerShown: false }} />
         </Stack.Navigator>
       </NavigationContainer>
     </PaperProvider>
