@@ -18,7 +18,7 @@ export default function Main({ navigation }) {
             {/* Buttons Section */}
             <View style={mainStyles.buttonsContainer}>
 
-                {/* Google Sign-In Button (Not functional)*/}
+                {/* Google Sign-In Button*/}
                 <Button
                     mode="contained"
                     style={mainStyles.googleButton}

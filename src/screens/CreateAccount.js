@@ -1,13 +1,69 @@
 import React, { useState } from 'react';
-import { ScrollView, View, Text, Image } from 'react-native';
+import { ScrollView, View, Text, Image, Alert } from 'react-native';
 import { TextInput, Button } from 'react-native-paper';
 import CreateAccountStyles from '../styles/createAccuntStyles';
+import { authService } from '../firebase/services/authService'; // Ajusta la ruta según tu estructura
 
 export default function CreateAccount({ navigation }) {
-    const [name, setName] = useState('');
     const [email, setEmail] = useState('');
-    const [nickname, setNickName] = useState('');
+    const [name, setName] = useState('');
+    const [username, setUserName] = useState('');
     const [password, setPassword] = useState('');
+    const [loading, setLoading] = useState(false);
+
+    const handleRegister = async () => {
+        // Validaciones básicas
+        if (!name.trim() || !username.trim() || !email.trim() || !password.trim()) {
+            Alert.alert('Error', 'Por favor completa todos los campos');
+            return;
+        }
+
+        if (password.length < 6) {
+            Alert.alert('Error', 'La contraseña debe tener al menos 6 caracteres');
+            return;
+        }
+
+        if (name.length > 50) {
+            Alert.alert('Error', 'El nombre no puede tener más de 50 caracteres');
+            return;
+        }
+
+        setLoading(true);
+
+        try {
+            const result = await authService.register(name, username, email, password);
+            
+            if (result.success) {
+                Alert.alert('Éxito', 'Cuenta creada correctamente');
+                // Navegar a Home u otra pantalla
+                //navigation.navigate('Home');
+            } else {
+                // Manejar errores específicos de Firebase
+                let errorMessage = 'Error al crear la cuenta';
+                
+                if (result.error.includes('email-already-in-use')) {
+                    errorMessage = 'Este email ya está registrado';
+                } else if (result.error.includes('weak-password')) {
+                    errorMessage = 'La contraseña es demasiado débil';
+                } else if (result.error.includes('invalid-email')) {
+                    errorMessage = 'El formato del email no es válido';
+                }
+                
+                Alert.alert('Error', errorMessage);
+            }
+        } catch (error) {
+            Alert.alert('Error', 'Ocurrió un error inesperado');
+            console.error('Error en registro:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleUsernameChange = (text) => {
+        // Validación básica para username (sin espacios)
+        const filteredText = text.replace(/\s/g, '');
+        setUserName(filteredText);
+    };
 
     return (
         <ScrollView contentContainerStyle={CreateAccountStyles.container}>
@@ -41,6 +97,8 @@ export default function CreateAccount({ navigation }) {
                                 placeholder: '#71767B'
                             }
                         }}
+                        maxLength={50}
+                        disabled={loading}
                     />
                     <Text style={CreateAccountStyles.characterCounter}>
                         {name.length}/50
@@ -64,16 +122,19 @@ export default function CreateAccount({ navigation }) {
                                 placeholder: '#71767B'
                             }
                         }}
+                        autoCapitalize="none"
+                        keyboardType="email-address"
+                        disabled={loading}
                     />
                 </View>
 
                 {/* Nickname Input */}
                 <View style={CreateAccountStyles.inputContainer}>
                     <TextInput
-                        label="@Nickname"
+                        label="@username"
                         mode="outlined"
-                        value={nickname}
-                        onChangeText={setNickName}
+                        value={username}
+                        onChangeText={handleUsernameChange}
                         style={CreateAccountStyles.textInput}
                         outlineStyle={CreateAccountStyles.inputOutline}
                         theme={{
@@ -84,6 +145,8 @@ export default function CreateAccount({ navigation }) {
                                 placeholder: '#71767B'
                             }
                         }}
+                        autoCapitalize="none"
+                        disabled={loading}
                     />
                 </View>
 
@@ -104,27 +167,39 @@ export default function CreateAccount({ navigation }) {
                                 placeholder: '#71767B'
                             }
                         }}
+                        secureTextEntry
+                        autoCapitalize="none"
+                        disabled={loading}
                     />
                 </View>
 
                 {/* Next Button */}
                 <Button
                     mode="contained"
-                    style={CreateAccountStyles.nextButton}
+                    style={[
+                        CreateAccountStyles.nextButton,
+                        loading && { opacity: 0.6 }
+                    ]}
                     contentStyle={CreateAccountStyles.buttonContent}
                     labelStyle={CreateAccountStyles.nextButtonLabel}
-                    onPress={() => { navigation.navigate('Home')}}
+                    onPress={handleRegister}
+                    disabled={loading}
+                    loading={loading}
                 >
-                    Next
+                    {loading ? 'Creating Account...' : 'Next'}
                 </Button>
 
                 {/* Back Button */}
                 <Button
                     mode="contained"
-                    style={CreateAccountStyles.backButton}
+                    style={[
+                        CreateAccountStyles.backButton,
+                        loading && { opacity: 0.6 }
+                    ]}
                     contentStyle={CreateAccountStyles.buttonContent}
                     labelStyle={CreateAccountStyles.backButtonLabel}
-                    onPress={() => { navigation.navigate('Main')}}
+                    onPress={() => { navigation.navigate('Main') }}
+                    disabled={loading}
                 >
                     Back
                 </Button>

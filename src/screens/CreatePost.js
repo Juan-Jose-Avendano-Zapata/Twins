@@ -3,12 +3,14 @@ import { View, Text, TextInput, Alert } from "react-native";
 import { IconButton, Button } from "react-native-paper";
 import { theme } from "../styles/theme";
 import createPostStyles from "../styles/createPostStyles";
+import { postService } from "../firebase/services/postService";
 
 export default function CreatePost({ navigation }) {
     const [content, setContent] = useState("");
 
     // Logic to publish a tweet/post
-    const handlePost = () => {
+    const handlePost = async () => {
+        // Validate content
         if (content.trim().length === 0) {
             Alert.alert("Error", "The message cannot be empty.");
             return;
@@ -17,22 +19,21 @@ export default function CreatePost({ navigation }) {
             Alert.alert("Error", "The post cannot exceed 280 characters.");
             return;
         }
+        
+        // Create the post
+        try {
+            const newPost = await postService.createPost(content, "");
 
-        // Simulated post publishing
-        const newPost = {
-            id: Date.now().toString(),
-            name: "You",
-            username: "@you",
-            time: "Just now",
-            content,
-            comments: 0,
-            retweets: 0,
-            likes: 0,
-        };
-
-        console.log("Published:", newPost);
-        Alert.alert("Published", "Post shared successfully");
-        navigation.goBack();
+            if (newPost.success) {
+                console.log("Published:", newPost);
+                Alert.alert("Published", "Post shared successfully");
+                navigation.goBack();
+            } else {
+                Alert.alert("Error", "Failed to share post: " + newPost.error);
+            }
+        } catch (error) {
+            Alert.alert("Error", "Failed to share post: " + error.message);
+        }
     };
 
     return (
@@ -58,7 +59,7 @@ export default function CreatePost({ navigation }) {
                 <TextInput
                     style={createPostStyles.input}
                     multiline
-                    placeholder="What’s happening?"
+                    placeholder="What's happening?"
                     placeholderTextColor={theme.Colors.text.secondary}
                     value={content}
                     onChangeText={setContent}
