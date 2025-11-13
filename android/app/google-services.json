@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "403169454627",
+    "project_id": "twins-5083d",
+    "storage_bucket": "twins-5083d.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:403169454627:android:376f6c85a8e873168d1f96",
+        "android_client_info": {
+          "package_name": "com.twins"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBBc__yNkivdsuIGlwyMxFXFaMPTY_RHEI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
