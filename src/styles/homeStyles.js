@@ -132,6 +132,64 @@ const homeStyles = StyleSheet.create({
         bottom: 80,
         backgroundColor: theme.Colors.primary,
         borderRadius: 30,
+    },
+
+    loadingContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center'
+    },
+
+    // New styles for "Following" functionality
+    emptyFollowing: {
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: 40,
+        marginTop: 20,
+    },
+
+    emptyFollowingTitle: {
+        ...baseStyles.body,
+        fontWeight: 'bold',
+        color: theme.Colors.text.primary,
+        textAlign: 'center',
+        marginBottom: 8,
+    },
+
+    emptyFollowingText: {
+        ...baseStyles.caption,
+        color: theme.Colors.text.secondary,
+        textAlign: 'center',
+        marginBottom: 20,
+    },
+
+    exploreButton: {
+        backgroundColor: theme.Colors.primary,
+        paddingHorizontal: 20,
+        paddingVertical: 10,
+        borderRadius: 20,
+    },
+
+    exploreButtonText: {
+        ...baseStyles.caption,
+        color: theme.Colors.background,
+        fontWeight: 'bold',
+    },
+
+    // Styles for empty states
+    emptyState: {
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: 40,
+        marginTop: 20,
+    },
+
+    scrollView: {
+        flex: 1,
+    },
+
+    scrollViewContent: {
+        flexGrow: 1,
     }
 });
 

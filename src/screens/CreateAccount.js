@@ -36,7 +36,7 @@ export default function CreateAccount({ navigation }) {
             if (result.success) {
                 Alert.alert('Éxito', 'Cuenta creada correctamente');
                 // Navegar a Home u otra pantalla
-                //navigation.navigate('Home');
+                navigation.navigate('Home');
             } else {
                 // Manejar errores específicos de Firebase
                 let errorMessage = 'Error al crear la cuenta';

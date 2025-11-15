@@ -1,227 +1,95 @@
-import { 
-    collection, 
-    addDoc, 
-    getDocs, 
-    getDoc, 
-    updateDoc, 
-    deleteDoc, 
-    doc, 
-    query, 
-    orderBy, 
-    onSnapshot,
+import {
+    collection,
+    getDocs,
+    query,
+    orderBy,
     where,
-    serverTimestamp,
-    increment
+    doc,
+    getDoc,
+    Timestamp,
+    addDoc,
+    updateDoc,
+    deleteDoc,
+    increment,
 } from 'firebase/firestore';
 import { db } from '../config/firebase';
-import { getAuth } from 'firebase/auth';
-
-const auth = getAuth();
+import { authService } from './authService';
 
 export const postService = {
-    // Create a new post
-    async createPost(content, image = "") {
+    // Get posts excluding current user's posts
+    async getPosts() {
         try {
-            const user = auth.currentUser;
-            if (!user) {
-                throw new Error('Unauthenticated user');
+            const currentUser = await authService.getCurrentUser();
+
+            if (!currentUser) {
+                return { success: false, error: 'User not authenticated' };
             }
 
-            const postData = {
-                authorId: user.uid,
-                authorRef: doc(db, 'users', user.uid),
-                content: content,
-                createdAt: serverTimestamp(),
-                image: image,
-                state: {
-                    comments: 0,
-                    likes: 0
-                },
-                updatedAt: serverTimestamp()
-            };
-
-            const docRef = await addDoc(collection(db, 'posts'), postData);
-            return { success: true, id: docRef.id };
-        } catch (error) {
-            return { success: false, error: error.message };
-        }
-    },
-
-    // Get all posts
-    async getPosts(limit = null) {
-        try {
             const postsRef = collection(db, 'posts');
-            let q = query(postsRef, orderBy('createdAt', 'desc'));
-            
+            const q = query(
+                postsRef,
+                orderBy('createdAt', 'desc')
+            );
+
             const querySnapshot = await getDocs(q);
-            const posts = [];
-            
-            for (const docSnap of querySnapshot.docs) {
-                const postData = docSnap.data();
-                // Get author information
-                const authorData = await this.getPostAuthor(postData.authorId);
-                posts.push({
-                    id: docSnap.id,
-                    ...postData,
-                    ...authorData
+
+            // Use Promise.all to fetch author info and like status in parallel
+            const postsPromises = querySnapshot.docs
+                .filter(doc => doc.data().authorId !== currentUser.uid)
+                .map(async (doc) => {
+                    const postData = doc.data();
+                    
+                    const [authorInfo, userLiked] = await Promise.all([
+                        this.getAuthorInfo(postData.authorId),
+                        this.checkUserLiked(doc.id, currentUser.uid)
+                    ]);
+                    
+                    return {
+                        id: doc.id,
+                        ...postData,
+                        ...authorInfo,
+                        createdAt: postData.createdAt?.toDate?.(),
+                        updatedAt: postData.updatedAt?.toDate?.(),
+                        time: this.formatTime(postData.createdAt?.toDate?.()),
+                        userLiked: userLiked
+                    };
                 });
-            }
-            
+
+            const posts = await Promise.all(postsPromises);
+
             return { success: true, data: posts };
         } catch (error) {
+            console.error('Error getting posts:', error);
             return { success: false, error: error.message };
         }
     },
 
-    // Get posts in real-time
-    getPostsRealtime(callback) {
-        const postsRef = collection(db, 'posts');
-        const q = query(postsRef, orderBy('createdAt', 'desc'));
-        
-        return onSnapshot(q, async (querySnapshot) => {
-            const posts = [];
-            
-            for (const docSnap of querySnapshot.docs) {
-                const postData = docSnap.data();
-                // Get author information
-                const authorData = await this.getPostAuthor(postData.authorId);
-                posts.push({
-                    id: docSnap.id,
-                    ...postData,
-                    ...authorData,
-                    time: this.formatTime(postData.createdAt?.toDate())
-                });
-            }
-            
-            callback(posts);
-        });
-    },
-
-    // Get post author information
-    async getPostAuthor(authorId) {
+    // Get author information
+    async getAuthorInfo(authorId) {
         try {
-            const userDoc = await getDoc(doc(db, 'users', authorId));
-            if (userDoc.exists()) {
-                const userData = userDoc.data();
+            const userProfile = await authService.getUserProfile(authorId);
+            if (userProfile.success) {
                 return {
-                    authorName: userData.name,
-                    authorUsername: userData.username,
-                    authorAvatar: userData.avatar || require('../../assets/img/logoTWBlack.jpg'),
+                    authorName: userProfile.data.profile?.name || 'User',
+                    authorUsername: userProfile.data.username || 'user',
+                    authorAvatar: userProfile.data.profile?.avatar || null
                 };
             }
-            return {
-                authorName: 'User',
-                authorUsername: 'username',
-                authorAvatar: "",
-            };
         } catch (error) {
-            console.error("Error getting author:", error);
-            return {
-                authorName: 'User',
-                authorUsername: 'username',
-                authorAvatar: "",
-            };
+            console.error('Error getting author info:', error);
         }
+
+        return {
+            authorName: 'User',
+            authorUsername: 'user',
+            authorAvatar: null
+        };
     },
 
-    // Like a post
-    async likePost(postId) {
-        try {
-            const postRef = doc(db, 'posts', postId);
-            await updateDoc(postRef, {
-                'state.likes': increment(1),
-                updatedAt: serverTimestamp()
-            });
-            return { success: true };
-        } catch (error) {
-            return { success: false, error: error.message };
-        }
-    },
-
-    // Unlike a post
-    async unlikePost(postId) {
-        try {
-            const postRef = doc(db, 'posts', postId);
-            await updateDoc(postRef, {
-                'state.likes': increment(-1),
-                updatedAt: serverTimestamp()
-            });
-            return { success: true };
-        } catch (error) {
-            return { success: false, error: error.message };
-        }
-    },
-
-    // Add comment to a post
-    async addComment(postId, content) {
-        try {
-            const user = auth.currentUser;
-            if (!user) {
-                throw new Error('Unauthenticated user');
-            }
-
-            const commentData = {
-                authorId: user.uid,
-                content: content,
-                createdAt: serverTimestamp(),
-                postId: postId
-            };
-
-            // Add comment document
-            await addDoc(collection(db, 'comments'), commentData);
-
-            // Increment comment count in post
-            const postRef = doc(db, 'posts', postId);
-            await updateDoc(postRef, {
-                'state.comments': increment(1),
-                updatedAt: serverTimestamp()
-            });
-
-            return { success: true };
-        } catch (error) {
-            return { success: false, error: error.message };
-        }
-    },
-
-    // Get comments for a post
-    async getComments(postId) {
-        try {
-            const commentsRef = collection(db, 'comments');
-            const q = query(commentsRef, where('postId', '==', postId), orderBy('createdAt', 'desc'));
-            
-            const querySnapshot = await getDocs(q);
-            const comments = [];
-            
-            for (const docSnap of querySnapshot.docs) {
-                const commentData = docSnap.data();
-                const authorData = await this.getPostAuthor(commentData.authorId);
-                comments.push({
-                    id: docSnap.id,
-                    ...commentData,
-                    ...authorData,
-                    time: this.formatTime(commentData.createdAt?.toDate())
-                });
-            }
-            
-            return { success: true, data: comments };
-        } catch (error) {
-            return { success: false, error: error.message };
-        }
-    },
-
-    // Delete post
-    async deletePost(postId) {
-        try {
-            await deleteDoc(doc(db, 'posts', postId));
-            return { success: true };
-        } catch (error) {
-            return { success: false, error: error.message };
-        }
-    },
-
-    // Format time
+    // Format time difference
     formatTime(date) {
         if (!date) return '';
+
         const now = new Date();
         const diff = now.getTime() - date.getTime();
         const minutes = Math.floor(diff / 60000);
@@ -234,6 +102,202 @@ export const postService = {
             return `${hours}h`;
         } else {
             return `${days}d`;
+        }
+    },
+
+    async likePost(postId) {
+        try {
+            const currentUser = await authService.getCurrentUser();
+            if (!currentUser) {
+                return { success: false, error: 'User not authenticated' };
+            }
+
+            // Validate if the user has already liked the post
+            const likesRef = collection(db, 'likes');
+            const q = query(
+                likesRef,
+                where('postId', '==', postId),
+                where('authorId', '==', currentUser.uid)
+            );
+            const querySnapshot = await getDocs(q);
+
+            // If already liked, remove the like
+            if (!querySnapshot.empty) {
+                return await this.unlikePost(postId);
+            }
+
+            // If not liked yet, add a new like
+            await addDoc(collection(db, 'likes'), {
+                postId: postId,
+                authorId: currentUser.uid,
+                authorRef: `users/${currentUser.uid}`,
+                createdAt: Timestamp.now()
+            });
+
+            // Update like count in the post
+            const postRef = doc(db, 'posts', postId);
+            await updateDoc(postRef, {
+                'state.likes': increment(1)
+            });
+
+            return { success: true, action: 'liked' };
+        } catch (error) {
+            console.error('Error liking post:', error);
+            return { success: false, error: error.message };
+        }
+    },
+
+    async getFollowingPosts() {
+        try {
+            const currentUser = await authService.getCurrentUser();
+
+            if (!currentUser) {
+                return { success: false, error: 'User not authenticated' };
+            }
+
+            // Get current user's profile to retrieve following list
+            const currentUserProfile = await authService.getUserProfile(currentUser.uid);
+            
+            if (!currentUserProfile.success) {
+                return { success: false, error: 'Error getting user profile' };
+            }
+
+            const following = currentUserProfile.data.following || [];
+            
+            // If not following anyone, return empty array
+            if (following.length === 0) {
+                return { success: true, data: [] };
+            }
+
+            const postsRef = collection(db, 'posts');
+            const allPostsDocs = [];
+            const chunkSize = 10;
+
+            // Iterate over the 'following' array in chunks of 10 UIDs
+            for (let i = 0; i < following.length; i += chunkSize) {
+                const chunk = following.slice(i, i + chunkSize);
+
+                const q = query(
+                    postsRef,
+                    where('authorId', 'in', chunk),
+                    orderBy('createdAt', 'desc')
+                );
+
+                const querySnapshot = await getDocs(q);
+                allPostsDocs.push(...querySnapshot.docs);
+            }
+
+            // Use Promise.all to get author info and likes in parallel
+            const postsPromises = allPostsDocs.map(async (doc) => {
+                const postData = doc.data();
+                
+                const [authorInfo, userLiked] = await Promise.all([
+                    this.getAuthorInfo(postData.authorId),
+                    this.checkUserLiked(doc.id, currentUser.uid)
+                ]);
+                
+                return {
+                    id: doc.id,
+                    ...postData,
+                    ...authorInfo,
+                    createdAt: postData.createdAt?.toDate?.(),
+                    updatedAt: postData.updatedAt?.toDate?.(),
+                    time: this.formatTime(postData.createdAt?.toDate?.()),
+                    userLiked: userLiked
+                };
+            });
+
+            let posts = await Promise.all(postsPromises);
+
+            // Re-sort by creation date after combining results
+            posts.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+
+            return { success: true, data: posts };
+        } catch (error) {
+            console.error('Error getting following posts:', error);
+            return { success: false, error: error.message };
+        }
+    },
+
+    async unlikePost(postId) {
+        try {
+            const currentUser = await authService.getCurrentUser();
+            if (!currentUser) {
+                return { success: false, error: 'User not authenticated' };
+            }
+
+            // Find the user's like
+            const likesRef = collection(db, 'likes');
+            const q = query(
+                likesRef,
+                where('postId', '==', postId),
+                where('authorId', '==', currentUser.uid)
+            );
+            const querySnapshot = await getDocs(q);
+
+            if (querySnapshot.empty) {
+                return { success: false, error: 'Like not found' };
+            }
+
+            // Remove the like
+            const likeDoc = querySnapshot.docs[0];
+            await deleteDoc(doc(db, 'likes', likeDoc.id));
+
+            // Update like count in the post
+            const postRef = doc(db, 'posts', postId);
+            await updateDoc(postRef, {
+                'state.likes': increment(-1)
+            });
+
+            return { success: true, action: 'unliked' };
+        } catch (error) {
+            console.error('Error removing like:', error);
+            return { success: false, error: error.message };
+        }
+    },
+
+    async createPost(content, image = "") {
+        try {
+            const currentUser = await authService.getCurrentUser();
+
+            if (!currentUser) {
+                return { success: false, error: 'User not authenticated' };
+            }
+
+            const userProfile = await authService.getUserProfile(currentUser.uid);
+
+            if (!userProfile.success) {
+                return { success: false, error: 'Error getting user profile' };
+            }
+
+            const newPost = {
+                authorId: currentUser.uid,
+                authorRef: `users/${currentUser.uid}`,
+                content: content,
+                image: image,
+                createdAt: Timestamp.now(),
+                updatedAt: Timestamp.now(),
+                state: {
+                    comments: 0,
+                    likes: 0,
+                    retweets: 0
+                }
+            };
+
+            const docRef = await addDoc(collection(db, 'posts'), newPost);
+
+            return {
+                success: true,
+                data: {
+                    id: docRef.id,
+                    ...newPost,
+                    createdAt: newPost.createdAt.toDate(),
+                    updatedAt: newPost.updatedAt.toDate()
+                }
+            };
+        } catch (error) {
+            console.error('Error creating post:', error);
+            return { success: false, error: error.message };
         }
     }
 };
