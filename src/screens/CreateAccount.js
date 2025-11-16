@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { ScrollView, View, Text, Image, Alert } from 'react-native';
 import { TextInput, Button } from 'react-native-paper';
 import CreateAccountStyles from '../styles/createAccuntStyles';
-import { authService } from '../firebase/services/authService'; // Ajusta la ruta según tu estructura
+import { authService } from '../firebase/services/authService'; 
 
 export default function CreateAccount({ navigation }) {
     const [email, setEmail] = useState('');

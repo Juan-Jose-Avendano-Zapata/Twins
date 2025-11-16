@@ -6,11 +6,11 @@ import Main from './src/screens/Main';
 import CreateAccount from './src/screens/CreateAccount';
 import Login from './src/screens/Login';
 import Home from './src/screens/Home';
-import Settings from './src/screens/Settings';
 import CreatePost from './src/screens/CreatePost';
-import Search from './src/screens/Search'
-import Profile from './src/screens/Profile';
-import ListFollow from './src/screens/ListFollow';
+import Settings from './src/screens/Settings';
+//import Search from './src/screens/Search'
+//import Profile from './src/screens/Profile';
+//import ListFollow from './src/screens/ListFollow';
 
 const Stack = createNativeStackNavigator();
 
@@ -25,9 +25,12 @@ export default function App() {
           <Stack.Screen name="Home" component = {Home} options={{ headerShown: false }}/>
           <Stack.Screen name='Settings' component={Settings} options={{ headerShown: false }} />
           <Stack.Screen name='CreatePost' component={CreatePost} options={{ headerShown: false }} />
+          { /*
+          <Stack.Screen name='Settings' component={Settings} options={{ headerShown: false }} />
           <Stack.Screen name='Profile' component={Profile} options={{ headerShown: false }} />
           <Stack.Screen name="Search" component = {Search} options={{ headerShown: false }}/>
           <Stack.Screen name='ListFollow' component={ListFollow} options={{ headerShown: false }} />
+          */ }
         </Stack.Navigator>
       </NavigationContainer>
     </PaperProvider>

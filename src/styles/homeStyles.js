@@ -140,7 +140,7 @@ const homeStyles = StyleSheet.create({
         alignItems: 'center'
     },
 
-    // New styles for "Following" functionality
+    // Nuevos estilos para la funcionalidad "Siguiendo"
     emptyFollowing: {
         alignItems: 'center',
         justifyContent: 'center',
@@ -176,7 +176,7 @@ const homeStyles = StyleSheet.create({
         fontWeight: 'bold',
     },
 
-    // Styles for empty states
+    // Estilos para estados vacíos
     emptyState: {
         alignItems: 'center',
         justifyContent: 'center',

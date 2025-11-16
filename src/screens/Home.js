@@ -14,111 +14,107 @@ import { IconButton, FAB } from "react-native-paper";
 import homeStyles from "../styles/homeStyles";
 import { authService } from "../firebase/services/authService";
 import { postService } from "../firebase/services/postService";
+import Video from "react-native-video";
 
 export default function Home({ navigation }) {
     const [activeTab, setActiveTab] = useState("For you");
-    const [refreshing, setRefreshing] = useState(false);
     const [posts, setPosts] = useState([]);
-    const [userProfile, setUserProfile] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [refreshing, setRefreshing] = useState(false);
     const flatListRef = useRef(null);
 
-    useEffect(() => {
-        const initializeData = async () => {
-            await loadUserData();
-            await loadPosts();
-        };
-        initializeData();
-    }, []);
-
-    // Effect to load posts when active tab changes
-    useEffect(() => {
-        if (userProfile) { // Only load posts if we already have user profile
-            loadPosts();
+    // Get avatar source
+    const getAvatarSource = (avatar) => {
+        if (avatar && avatar !== "" && avatar !== "~") {
+            return { uri: avatar };
         }
-    }, [activeTab, userProfile]);
-
-    const loadUserData = async () => {
-        try {
-            const currentUser = authService.getCurrentUser();
-            if (currentUser) {
-                const profile = await authService.getUserProfile(currentUser.uid);
-                if (profile) {
-                    setUserProfile(profile.data);
-                }
-            }
-        } catch (error) {
-            console.error("Error fetching user profile:", error);
-        }
+        return require("../assets/img/logoTWBlack.jpg");
     };
 
-    // Load posts based on active tab
-    const loadPosts = async () => {
-        try {
-            setLoading(true);
-            let result;
-            
-            if (activeTab === "For you") {
-                result = await postService.getPosts();
-            } else {
-                result = await postService.getFollowingPosts();
-            }
-            
-            if (result.success) {
-                setPosts(result.data);
-            } else {
-                console.error("Error loading posts:", result.error);
-                Alert.alert("Error", "Could not load posts");
-            }
-        } catch (error) {
-            console.error("Error in loadPosts:", error);
-            Alert.alert("Error", "Error loading posts");
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    // Refresh feed - reloads posts based on active tab
-    const onRefresh = async () => {
-        setRefreshing(true);
-        await loadPosts();
-        setRefreshing(false);
+    // Handle tab change
+    const handleTabChange = (tab) => {
+        setActiveTab(tab);
+        loadPosts(tab);
     };
 
     // Handle like/unlike
-    const handleLike = async (postId, currentlyLiked) => {
+    const handleLike = async (postId, isCurrentlyLiked) => {
         try {
             let result;
-            if (currentlyLiked) {
+            if (isCurrentlyLiked) {
                 result = await postService.unlikePost(postId);
             } else {
                 result = await postService.likePost(postId);
             }
 
             if (result.success) {
-                // Reload posts to reflect changes
-                await loadPosts();
+                // Update local state
+                setPosts(prevPosts =>
+                    prevPosts.map(post => {
+                        if (post.id === postId) {
+                            const likeChange = result.action === 'liked' ? 1 : -1;
+                            return {
+                                ...post,
+                                userLiked: result.action === 'liked',
+                                state: {
+                                    ...post.state,
+                                    likes: (post.state?.likes || 0) + likeChange
+                                }
+                            };
+                        }
+                        return post;
+                    })
+                );
             } else {
-                Alert.alert("Error", result.error);
+                Alert.alert("Error", result.error || "Failed to update like");
             }
         } catch (error) {
             console.error("Error handling like:", error);
-            Alert.alert("Error", "Could not process like");
+            Alert.alert("Error", "An error occurred while updating the like");
         }
     };
 
-    // Switch between tabs
-    const handleTabChange = (tab) => {
-        setActiveTab(tab);
-    };
+    // Load posts based on active tab
+    const loadPosts = async (tab = activeTab) => {
+        try {
+            setLoading(true);
+            let result;
 
-    const getAvatarSource = (avatar) => {
-        if (avatar && avatar !== "" && avatar !== "-") {
-            return { uri: avatar };
+            if (tab === "For you") {
+                result = await postService.getPosts();
+            } else {
+                // For Following tab, you'll need to implement getFollowingPosts in postService
+                result = await postService.getFollowingPosts();
+            }
+
+            if (result.success) {
+                setPosts(result.data);
+            } else {
+                Alert.alert("Error", result.error || "Failed to load posts");
+                setPosts([]);
+            }
+        } catch (error) {
+            console.error("Error loading posts:", error);
+            Alert.alert("Error", "An error occurred while loading posts");
+            setPosts([]);
+        } finally {
+            setLoading(false);
+            setRefreshing(false);
         }
-        return require("../assets/img/logoTWBlack.jpg");
     };
 
+    // Refresh function
+    const onRefresh = () => {
+        setRefreshing(true);
+        loadPosts();
+    };
+
+    // Initial load
+    useEffect(() => {
+        loadPosts();
+    }, []);
+
+    // Render individual post
     const renderPost = ({ item }) => (
         <View style={homeStyles.post}>
             <Image
@@ -128,21 +124,33 @@ export default function Home({ navigation }) {
             <View style={homeStyles.postContent}>
                 <View style={homeStyles.postHeader}>
                     <Text style={homeStyles.name}>{item.authorName}</Text>
-                    <Text style={homeStyles.username}>@{item.authorUsername} · {item.time}</Text>
+                    <Text style={homeStyles.username}> @{item.authorUsername} · {item.time}</Text>
                 </View>
                 <Text style={homeStyles.text}>{item.content}</Text>
-                {item.image && item.image !== "" && item.image !== "~" && (
-                    <Image
-                        source={{ uri: item.image }}
-                        style={homeStyles.postImage}
-                    />
-                )}
+
+                {/* Here we show the average */}
+                {item.image ? (
+                    item.image.includes("video") ? (
+                        <Video
+                            source={{ uri: item.image }}
+                            style={{ width: "100%", height: 250, borderRadius: 12, marginTop: 10 }}
+                            controls
+                            resizeMode="cover"
+                        />
+                    ) : (
+                        <Image
+                            source={{ uri: item.image }}
+                            style={{ width: "100%", height: 250, borderRadius: 12, marginTop: 10 }}
+                        />
+                    )
+                ) : null}
+
                 <View style={homeStyles.actions}>
                     <View style={homeStyles.actionItem}>
                         <IconButton
                             icon="comment-outline"
                             size={20}
-                        // onPress={navigation.navigate('expandPost', {postId: item.id})}
+                            onPress={() => navigation.navigate('ExpandPost', { postId: item.id })}
                         />
                         <Text style={homeStyles.actionText}>{item.state?.comments || 0}</Text>
                     </View>
@@ -152,7 +160,7 @@ export default function Home({ navigation }) {
                             size={20}
                             onPress={() => Alert.alert("Repost", "Repost functionality is not implemented yet.")}
                         />
-                        <Text style={homeStyles.actionText}>0</Text>
+                        <Text style={homeStyles.actionText}>{item.state?.retweets || 0}</Text>
                     </View>
                     <View style={homeStyles.actionItem}>
                         <IconButton
@@ -204,7 +212,7 @@ export default function Home({ navigation }) {
                 <View style={homeStyles.tabBar}>
                     <TouchableOpacity onPress={() => handleTabChange("For you")}>
                         <Text style={[
-                            homeStyles.tab, 
+                            homeStyles.tab,
                             activeTab === "For you" && homeStyles.activeTab
                         ]}>
                             For you
@@ -212,7 +220,7 @@ export default function Home({ navigation }) {
                     </TouchableOpacity>
                     <TouchableOpacity onPress={() => handleTabChange("Following")}>
                         <Text style={[
-                            homeStyles.tab, 
+                            homeStyles.tab,
                             activeTab === "Following" && homeStyles.activeTab
                         ]}>
                             Following
@@ -229,7 +237,7 @@ export default function Home({ navigation }) {
                         <Text style={homeStyles.emptyFollowingText}>
                             When you follow people, you'll see their posts here.
                         </Text>
-                        <TouchableOpacity 
+                        <TouchableOpacity
                             style={homeStyles.exploreButton}
                             onPress={() => setActiveTab("For you")}
                         >

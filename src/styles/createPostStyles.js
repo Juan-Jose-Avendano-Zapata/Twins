@@ -50,6 +50,22 @@ const createPostStyles = StyleSheet.create({
     counter: {
         color: theme.Colors.text.secondary,
     },
+
+    imagePreview: {
+        position: 'relative',
+        marginVertical: 10,
+    },
+    image: {
+        width: "100%",
+        height: 200,
+        borderRadius: 10,
+    },
+    removeImage: {
+        position: 'absolute',
+        right: 5,
+        top: 5,
+        backgroundColor: 'rgba(0,0,0,0.5)',
+    },
 });
 
 export default createPostStyles;
