@@ -1,5 +1,5 @@
 import { StyleSheet } from 'react-native';
-import { baseStyles} from './baseStyles';
+import { baseStyles } from './baseStyles';
 import { theme } from './theme';
 
 const CreateAccountStyles = StyleSheet.create({
@@ -58,7 +58,7 @@ const CreateAccountStyles = StyleSheet.create({
         marginTop: theme.Spacing.medium,
     },
 
-    
+
 
     backButton: {
         ...baseStyles.button,
@@ -71,11 +71,64 @@ const CreateAccountStyles = StyleSheet.create({
         ...baseStyles.buttonLabelPrimary,
     },
 
-    
+
 
     backButtonLabel: {
         ...baseStyles.buttonLabel,
         ...baseStyles.buttonLabelSecondary,
+    },
+
+    profilePictureContainer: {
+        alignItems: 'center',
+        marginBottom: 20,
+    },
+
+    profilePictureWrapper: {
+        position: 'relative',
+        marginBottom: 10,
+    },
+
+    profilePicture: {
+        width: 100,
+        height: 100,
+        borderRadius: 50,
+        borderWidth: 2,
+        borderColor: '#9e3d9c',
+    },
+
+    profilePicturePlaceholder: {
+        width: 100,
+        height: 100,
+        borderRadius: 50,
+        backgroundColor: '#2f3336',
+        justifyContent: 'center',
+        alignItems: 'center',
+        borderWidth: 2,
+        borderColor: '#9e3d9c',
+        borderStyle: 'dashed',
+    },
+
+    profilePictureText: {
+        color: '#71767B',
+        fontSize: 12,
+        textAlign: 'center',
+    },
+
+    cameraButton: {
+        position: 'absolute',
+        bottom: -5,
+        right: -5,
+        backgroundColor: '#9e3d9c',
+        margin: 0,
+    },
+
+    removePhotoButton: {
+        marginTop: 5,
+    },
+
+    removePhotoButtonLabel: {
+        color: '#ef4444',
+        fontSize: 12,
     },
 });
 

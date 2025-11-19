@@ -140,7 +140,7 @@ const homeStyles = StyleSheet.create({
         alignItems: 'center'
     },
 
-    // Nuevos estilos para la funcionalidad "Siguiendo"
+    // estilos para la funcionalidad "Siguiendo"
     emptyFollowing: {
         alignItems: 'center',
         justifyContent: 'center',
@@ -190,7 +190,78 @@ const homeStyles = StyleSheet.create({
 
     scrollViewContent: {
         flexGrow: 1,
-    }
+    },
+
+    paginationContainer: {
+        flexDirection: "row",
+        justifyContent: "space-between",
+        alignItems: "center",
+        paddingHorizontal: 20,
+        paddingVertical: 10,
+    },
+
+    paginationButton: {
+        paddingHorizontal: 16,
+        paddingVertical: 8,
+        borderRadius: 20,
+        backgroundColor: theme.Colors.primary,
+        minWidth: 90,
+        alignItems: "center",
+    },
+
+    paginationButtonDisabled: {
+        backgroundColor: "#ccc",
+    },
+
+    paginationButtonText: {
+        color: "white",
+        fontWeight: "bold",
+    },
+
+    paginationButtonTextDisabled: {
+        color: "#666",
+    },
+
+    paginationText: {
+        color: "#666",
+        fontSize: 16,
+    },
+
+    emptyFollowing: {
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: 40,
+        marginTop: 20,
+    },
+
+    emptyText: {
+        ...baseStyles.body,
+        fontWeight: 'bold',
+        color: theme.Colors.text.primary,
+        textAlign: 'center',
+        marginBottom: 8,
+    },
+
+    emptyFollowingText: {
+        ...baseStyles.caption,
+        color: theme.Colors.text.secondary,
+        textAlign: 'center',
+        marginBottom: 20,
+    },
+
+    exploreButton: {
+        backgroundColor: theme.Colors.primary,
+        paddingHorizontal: 20,
+        paddingVertical: 10,
+        borderRadius: 20,
+    },
+
+    exploreButtonText: {
+        ...baseStyles.caption,
+        color: theme.Colors.background,
+        fontWeight: 'bold',
+    },
+
 });
 
 export default homeStyles;

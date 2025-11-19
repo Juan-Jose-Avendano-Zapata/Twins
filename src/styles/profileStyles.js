@@ -250,6 +250,26 @@ const profileStyles = StyleSheet.create({
         marginHorizontal: theme.Spacing.small,
         fontSize: theme.Typography.body.fontSize,
     },
+
+    emptyContainer: {
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingVertical: 50,
+        paddingHorizontal: 20,
+    },
+
+    emptyText: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        color: '#666',
+        marginBottom: 8,
+    },
+
+    emptySubtext: {
+        fontSize: 14,
+        color: '#999',
+        textAlign: 'center',
+    },
 });
 
 export default profileStyles;

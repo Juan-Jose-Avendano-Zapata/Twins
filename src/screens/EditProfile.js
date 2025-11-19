@@ -1,21 +1,59 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ScrollView, View, Text, Image, Alert, Platform, PermissionsAndroid } from 'react-native';
 import { TextInput, Button, IconButton } from 'react-native-paper';
 import CreateAccountStyles from '../styles/createAccuntStyles';
 import { authService } from '../firebase/services/authService';
 import { launchImageLibrary } from "react-native-image-picker";
 import { uploadMediaToCloudinary } from "../firebase/services/cloudinaryService";
+import { userService } from '../firebase/services/userService';
 
-export default function CreateAccount({ navigation }) {
-
-    const [email, setEmail] = useState('');
+export default function EditProfile({ navigation, route }) {
     const [name, setName] = useState('');
     const [username, setUserName] = useState('');
-    const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
     const [profilePicture, setProfilePicture] = useState(null);
+    const [currentUser, setCurrentUser] = useState(null);
 
-    // Android Permission
+    useEffect(() => {
+        loadCurrentProfile();
+    }, []);
+
+    const loadCurrentProfile = async () => {
+        try {
+            setLoading(true);
+            const user = authService.getCurrentUser();
+            if (!user) {
+                Alert.alert('Error', 'User not authenticated');
+                navigation.goBack();
+                return;
+            }
+
+            setCurrentUser(user);
+
+            const userProfile = await userService.getUserProfile(user.uid);
+            if (userProfile.success) {
+                const data = userProfile.data;
+                const profile = data.profile || {};
+                
+                setName(profile.name || '');
+                setUserName(data.username || '');
+                
+                if (profile.avatar && profile.avatar !== "" && profile.avatar !== "~") {
+                    setProfilePicture({
+                        uri: profile.avatar,
+                        type: 'image/jpeg',
+                        fileName: 'current-avatar.jpg'
+                    });
+                }
+            }
+        } catch (error) {
+            console.error('Error loading profile:', error);
+            Alert.alert('Error', 'Could not load profile data');
+        } finally {
+            setLoading(false);
+        }
+    };
+
     const requestAndroidPermission = async () => {
         try {
             if (Platform.OS === "android") {
@@ -33,17 +71,16 @@ export default function CreateAccount({ navigation }) {
             }
             return true;
         } catch (err) {
-            console.warn("Permission error:", err);
+            console.warn("Error requesting permissions:", err);
             return false;
         }
     };
 
-    // Pick Image
     const pickProfilePicture = async () => {
         if (Platform.OS === "android") {
             const hasPermission = await requestAndroidPermission();
             if (!hasPermission) {
-                Alert.alert("Permissions Required", "You must allow access to the gallery.");
+                Alert.alert("Permissions Required", "You need to allow gallery access.");
                 return;
             }
         }
@@ -59,9 +96,7 @@ export default function CreateAccount({ navigation }) {
         launchImageLibrary(options, (response) => {
             if (response.didCancel) return;
 
-            if (response.errorCode) {
-                return Alert.alert("Error", response.errorMessage);
-            }
+            if (response.errorCode) return Alert.alert("Error", response.errorMessage);
 
             const asset = response.assets?.[0];
             setProfilePicture({
@@ -72,51 +107,14 @@ export default function CreateAccount({ navigation }) {
         });
     };
 
-    // Email Validation
-    const validateEmail = (email) => {
-        // Basic, safe regex for common emails
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        return emailRegex.test(email);
-    };
-
-    // Password Validation
-    const validatePassword = (password) => {
-        const minLength = 6;
-        const uppercaseRegex = /[A-Z]/;
-        const specialCharRegex = /[!@#$%^&*(),.?":{}|<>]/;
-
-        if (password.length < minLength) return "Password must be at least 6 characters long.";
-        if (!uppercaseRegex.test(password)) return "Password must contain at least one uppercase letter.";
-        if (!specialCharRegex.test(password)) return "Password must contain at least one special character.";
-
-        return null; // Valid password
-    };
-
-    // Register Handler
-    const handleRegister = async () => {
-
-        // Basic form validation
-        if (!name.trim() || !username.trim() || !email.trim() || !password.trim()) {
-            Alert.alert("Error", "Please fill in all fields.");
+    const handleUpdateProfile = async () => {
+        if (!name.trim() || !username.trim()) {
+            Alert.alert('Error', 'Please fill all required fields');
             return;
         }
 
-        // Name length validation
         if (name.length > 50) {
-            Alert.alert("Error", "Name cannot exceed 50 characters.");
-            return;
-        }
-
-        // Email format validation
-        if (!validateEmail(email)) {
-            Alert.alert("Invalid Email", "Please enter a valid email address (example: name@example.com).");
-            return;
-        }
-
-        // Password validation
-        const passwordError = validatePassword(password);
-        if (passwordError) {
-            Alert.alert("Invalid Password", passwordError);
+            Alert.alert('Error', 'Name cannot exceed 50 characters');
             return;
         }
 
@@ -125,50 +123,41 @@ export default function CreateAccount({ navigation }) {
         try {
             let profilePictureUrl = "";
 
-            // Upload profile picture if selected
-            if (profilePicture) {
+            // Upload new profile picture if selected
+            if (profilePicture && !profilePicture.uri.startsWith('http')) {
                 profilePictureUrl = await uploadMediaToCloudinary(profilePicture);
-
+                
                 if (!profilePictureUrl) {
                     setLoading(false);
-                    return Alert.alert("Error", "Error uploading profile picture.");
+                    return Alert.alert('Error', 'Error uploading profile picture');
                 }
+            } else if (profilePicture && profilePicture.uri.startsWith('http')) {
+                profilePictureUrl = profilePicture.uri;
             }
 
-            const result = await authService.register(
-                name,
-                username,
-                email,
-                password,
-                profilePictureUrl
-            );
+            const updateData = {
+                name: name.trim(),
+                username: username.trim(),
+                avatar: profilePictureUrl
+            };
 
+            const result = await authService.updateProfile(updateData);
+            
             if (result.success) {
-                Alert.alert("Success", "Account created successfully.");
-                navigation.navigate('Home');
+                Alert.alert('Success', 'Profile updated successfully');
+                
+                navigation.goBack();
             } else {
-                let errorMessage = "Error creating account";
-
-                if (result.error.includes('email-already-in-use')) {
-                    errorMessage = 'This email is already registered.';
-                } else if (result.error.includes('weak-password')) {
-                    errorMessage = 'The password is too weak.';
-                } else if (result.error.includes('invalid-email')) {
-                    errorMessage = 'The email format is invalid.';
-                }
-
-                Alert.alert("Error", errorMessage);
+                Alert.alert('Error', result.error);
             }
-
         } catch (error) {
-            Alert.alert("Error", "An unexpected error occurred.");
-            console.error("Register error:", error);
+            Alert.alert('Error', 'An unexpected error occurred');
+            console.error('Error updating profile:', error);
         } finally {
             setLoading(false);
         }
     };
 
-    // Username (no spaces)
     const handleUsernameChange = (text) => {
         const filteredText = text.replace(/\s/g, '');
         setUserName(filteredText);
@@ -176,31 +165,30 @@ export default function CreateAccount({ navigation }) {
 
     return (
         <ScrollView contentContainerStyle={CreateAccountStyles.container}>
-
-            {/* Logo */}
             <View style={CreateAccountStyles.logoContainer}>
-                <Image
-                    source={require('../assets/img/logoTW.png')}
-                    style={CreateAccountStyles.logo}
+                <Image 
+                    source={require('../assets/img/logoTW.png')} 
+                    style={CreateAccountStyles.logo} 
                 />
             </View>
 
-            <Text style={CreateAccountStyles.title}>Create your account</Text>
+            <Text style={CreateAccountStyles.title}>Edit your profile</Text>
 
-            {/* Profile Picture */}
             <View style={CreateAccountStyles.profilePictureContainer}>
                 <View style={CreateAccountStyles.profilePictureWrapper}>
                     {profilePicture ? (
-                        <Image
-                            source={{ uri: profilePicture.uri }}
-                            style={CreateAccountStyles.profilePicture}
+                        <Image 
+                            source={{ uri: profilePicture.uri }} 
+                            style={CreateAccountStyles.profilePicture} 
                         />
                     ) : (
                         <View style={CreateAccountStyles.profilePicturePlaceholder}>
-                            <Text style={CreateAccountStyles.profilePictureText}>Add Photo</Text>
+                            <Text style={CreateAccountStyles.profilePictureText}>
+                                Add Photo
+                            </Text>
                         </View>
                     )}
-
+                    
                     <IconButton
                         icon="camera"
                         size={20}
@@ -209,7 +197,7 @@ export default function CreateAccount({ navigation }) {
                         disabled={loading}
                     />
                 </View>
-
+                
                 {profilePicture && (
                     <Button
                         mode="text"
@@ -223,10 +211,7 @@ export default function CreateAccount({ navigation }) {
                 )}
             </View>
 
-            {/* Form */}
             <View style={CreateAccountStyles.formContainer}>
-
-                {/* Name */}
                 <View style={CreateAccountStyles.inputContainer}>
                     <TextInput
                         label="Name"
@@ -238,6 +223,7 @@ export default function CreateAccount({ navigation }) {
                         theme={{
                             colors: {
                                 primary: '#9e3d9c',
+                                background: 'transparent',
                                 text: 'white',
                                 placeholder: '#71767B'
                             }
@@ -250,29 +236,6 @@ export default function CreateAccount({ navigation }) {
                     </Text>
                 </View>
 
-                {/* Email */}
-                <View style={CreateAccountStyles.inputContainer}>
-                    <TextInput
-                        label="Email address"
-                        mode="outlined"
-                        value={email}
-                        onChangeText={setEmail}
-                        style={CreateAccountStyles.textInput}
-                        outlineStyle={CreateAccountStyles.inputOutline}
-                        theme={{
-                            colors: {
-                                primary: '#9e3d9c',
-                                text: 'white',
-                                placeholder: '#71767B'
-                            }
-                        }}
-                        autoCapitalize="none"
-                        keyboardType="email-address"
-                        disabled={loading}
-                    />
-                </View>
-
-                {/* Username */}
                 <View style={CreateAccountStyles.inputContainer}>
                     <TextInput
                         label="@username"
@@ -284,6 +247,7 @@ export default function CreateAccount({ navigation }) {
                         theme={{
                             colors: {
                                 primary: '#9e3d9c',
+                                background: 'transparent',
                                 text: 'white',
                                 placeholder: '#71767B'
                             }
@@ -293,29 +257,6 @@ export default function CreateAccount({ navigation }) {
                     />
                 </View>
 
-                {/* Password */}
-                <View style={CreateAccountStyles.inputContainer}>
-                    <TextInput
-                        label="Password"
-                        mode="outlined"
-                        value={password}
-                        onChangeText={setPassword}
-                        style={CreateAccountStyles.textInput}
-                        outlineStyle={CreateAccountStyles.inputOutline}
-                        theme={{
-                            colors: {
-                                primary: '#9e3d9c',
-                                text: 'white',
-                                placeholder: '#71767B'
-                            }
-                        }}
-                        secureTextEntry
-                        autoCapitalize="none"
-                        disabled={loading}
-                    />
-                </View>
-
-                {/* Create Button */}
                 <Button
                     mode="contained"
                     style={[
@@ -324,14 +265,13 @@ export default function CreateAccount({ navigation }) {
                     ]}
                     contentStyle={CreateAccountStyles.buttonContent}
                     labelStyle={CreateAccountStyles.nextButtonLabel}
-                    onPress={handleRegister}
+                    onPress={handleUpdateProfile}
                     disabled={loading}
                     loading={loading}
                 >
-                    {loading ? "Creating Account..." : "Next"}
+                    {loading ? 'Updating Profile...' : 'Update Profile'}
                 </Button>
 
-                {/* Back */}
                 <Button
                     mode="contained"
                     style={[
@@ -340,12 +280,12 @@ export default function CreateAccount({ navigation }) {
                     ]}
                     contentStyle={CreateAccountStyles.buttonContent}
                     labelStyle={CreateAccountStyles.backButtonLabel}
-                    onPress={() => navigation.navigate('Main')}
+                    onPress={() => navigation.goBack()}
                     disabled={loading}
                 >
-                    Back
+                    Cancel
                 </Button>
             </View>
         </ScrollView>
     );
-} // End Component
+}

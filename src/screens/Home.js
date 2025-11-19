@@ -4,7 +4,6 @@ import {
     Text,
     Image,
     FlatList,
-    ScrollView,
     TouchableOpacity,
     RefreshControl,
     Alert,
@@ -12,9 +11,9 @@ import {
 } from "react-native";
 import { IconButton, FAB } from "react-native-paper";
 import homeStyles from "../styles/homeStyles";
-import { authService } from "../firebase/services/authService";
 import { postService } from "../firebase/services/postService";
 import Video from "react-native-video";
+import { authService } from "../firebase/services/authService";
 
 export default function Home({ navigation }) {
     const [activeTab, setActiveTab] = useState("For you");
@@ -23,7 +22,10 @@ export default function Home({ navigation }) {
     const [refreshing, setRefreshing] = useState(false);
     const flatListRef = useRef(null);
 
-    // Get avatar source
+    const POSTS_PER_PAGE = 10;
+    const [page, setPage] = useState(1);
+
+    // Avatar handler
     const getAvatarSource = (avatar) => {
         if (avatar && avatar !== "" && avatar !== "~") {
             return { uri: avatar };
@@ -31,71 +33,58 @@ export default function Home({ navigation }) {
         return require("../assets/img/logoTWBlack.jpg");
     };
 
-    // Handle tab change
+    // Change tab
     const handleTabChange = (tab) => {
         setActiveTab(tab);
+        setPage(1);
         loadPosts(tab);
     };
 
-    // Handle like/unlike
+    // Like/unlike
     const handleLike = async (postId, isCurrentlyLiked) => {
         try {
-            let result;
-            if (isCurrentlyLiked) {
-                result = await postService.unlikePost(postId);
-            } else {
-                result = await postService.likePost(postId);
-            }
+            const result = isCurrentlyLiked
+                ? await postService.unlikePost(postId)
+                : await postService.likePost(postId);
 
             if (result.success) {
-                // Update local state
-                setPosts(prevPosts =>
-                    prevPosts.map(post => {
-                        if (post.id === postId) {
-                            const likeChange = result.action === 'liked' ? 1 : -1;
-                            return {
+                setPosts(prev =>
+                    prev.map(post =>
+                        post.id === postId
+                            ? {
                                 ...post,
-                                userLiked: result.action === 'liked',
+                                userLiked: result.action === "liked",
                                 state: {
                                     ...post.state,
-                                    likes: (post.state?.likes || 0) + likeChange
+                                    likes:
+                                        (post.state?.likes || 0) +
+                                        (result.action === "liked" ? 1 : -1)
                                 }
-                            };
-                        }
-                        return post;
-                    })
+                            }
+                            : post
+                    )
                 );
             } else {
                 Alert.alert("Error", result.error || "Failed to update like");
             }
         } catch (error) {
-            console.error("Error handling like:", error);
             Alert.alert("Error", "An error occurred while updating the like");
         }
     };
 
-    // Load posts based on active tab
+    // Load posts
     const loadPosts = async (tab = activeTab) => {
         try {
             setLoading(true);
-            let result;
 
-            if (tab === "For you") {
-                result = await postService.getPosts();
-            } else {
-                // For Following tab, you'll need to implement getFollowingPosts in postService
-                result = await postService.getFollowingPosts();
-            }
+            let result =
+                tab === "For you"
+                    ? await postService.getPosts()
+                    : await postService.getFollowingPosts();
 
-            if (result.success) {
-                setPosts(result.data);
-            } else {
-                Alert.alert("Error", result.error || "Failed to load posts");
-                setPosts([]);
-            }
-        } catch (error) {
-            console.error("Error loading posts:", error);
-            Alert.alert("Error", "An error occurred while loading posts");
+            if (result.success) setPosts(result.data);
+            else setPosts([]);
+        } catch (e) {
             setPosts([]);
         } finally {
             setLoading(false);
@@ -103,77 +92,110 @@ export default function Home({ navigation }) {
         }
     };
 
-    // Refresh function
+    // Refresh
     const onRefresh = () => {
         setRefreshing(true);
         loadPosts();
     };
 
-    // Initial load
+    // Paginated posts
+    const paginatedPosts = posts.slice(
+        (page - 1) * POSTS_PER_PAGE,
+        page * POSTS_PER_PAGE
+    );
+
     useEffect(() => {
         loadPosts();
     }, []);
 
-    // Render individual post
+    // Render each post
     const renderPost = ({ item }) => (
         <View style={homeStyles.post}>
             <Image
                 source={getAvatarSource(item.authorAvatar)}
                 style={homeStyles.avatar}
             />
+
             <View style={homeStyles.postContent}>
                 <View style={homeStyles.postHeader}>
                     <Text style={homeStyles.name}>{item.authorName}</Text>
-                    <Text style={homeStyles.username}> @{item.authorUsername} · {item.time}</Text>
+                    <Text style={homeStyles.username}>
+                        @{item.authorUsername} · {item.time}
+                    </Text>
                 </View>
+
                 <Text style={homeStyles.text}>{item.content}</Text>
 
-                {/* Here we show the average */}
-                {item.image ? (
-                    item.image.includes("video") ? (
+                {/* Media */}
+                {item.mediaUrl &&
+                    (item.mediaUrl.includes("video") ? (
                         <Video
-                            source={{ uri: item.image }}
-                            style={{ width: "100%", height: 250, borderRadius: 12, marginTop: 10 }}
+                            source={{ uri: item.mediaUrl }}
+                            style={{
+                                width: "100%",
+                                height: 250,
+                                borderRadius: 12,
+                                marginTop: 10
+                            }}
                             controls
                             resizeMode="cover"
                         />
                     ) : (
                         <Image
-                            source={{ uri: item.image }}
-                            style={{ width: "100%", height: 250, borderRadius: 12, marginTop: 10 }}
+                            source={{ uri: item.mediaUrl }}
+                            style={{
+                                width: "100%",
+                                height: 250,
+                                borderRadius: 12,
+                                marginTop: 10
+                            }}
                         />
-                    )
-                ) : null}
+                    ))}
 
+                {/* Buttons */}
                 <View style={homeStyles.actions}>
                     <View style={homeStyles.actionItem}>
                         <IconButton
                             icon="comment-outline"
                             size={20}
-                            onPress={() => navigation.navigate('ExpandPost', { postId: item.id })}
+                            onPress={() =>
+                                navigation.navigate("ExpandPost", {
+                                    postId: item.id
+                                })
+                            }
                         />
-                        <Text style={homeStyles.actionText}>{item.state?.comments || 0}</Text>
+                        <Text style={homeStyles.actionText}>
+                            {item.state?.comments || 0}
+                        </Text>
                     </View>
+
                     <View style={homeStyles.actionItem}>
                         <IconButton
                             icon="repeat-variant"
                             size={20}
                             onPress={() => Alert.alert("Repost", "Repost functionality is not implemented yet.")}
                         />
-                        <Text style={homeStyles.actionText}>{item.state?.retweets || 0}</Text>
+                        <Text style={homeStyles.actionText}>
+                            {item.state?.retweets || 0}
+                        </Text>
                     </View>
+
                     <View style={homeStyles.actionItem}>
                         <IconButton
                             icon={item.userLiked ? "heart" : "heart-outline"}
                             size={20}
                             color={item.userLiked ? "red" : undefined}
-                            onPress={() => handleLike(item.id, item.userLiked)}
+                            onPress={() =>
+                                handleLike(item.id, item.userLiked)
+                            }
                         />
-                        <Text style={homeStyles.actionText}>{item.state?.likes || 0}</Text>
+                        <Text style={homeStyles.actionText}>
+                            {item.state?.likes || 0}
+                        </Text>
                     </View>
+
                     <View style={homeStyles.actionItem}>
-                        <IconButton
-                            icon="share-outline"
+                        <IconButton icon="share-outline" 
                             size={20}
                             onPress={() => Alert.alert("Share", "Share functionality is not implemented yet.")}
                         />
@@ -185,100 +207,176 @@ export default function Home({ navigation }) {
 
     return (
         <View style={homeStyles.container}>
-            <ScrollView
-                style={homeStyles.scrollView}
-                contentContainerStyle={homeStyles.scrollViewContent}
-                showsVerticalScrollIndicator={false}
-            >
-                {/* Header with centered logo */}
-                <View style={homeStyles.header}>
-                    <IconButton
-                        icon="account-circle-outline"
-                        size={30}
-                        onPress={() => navigation.navigate('Profile')}
-                    />
-                    <Image
-                        source={require("../assets/img/logoTW.png")}
-                        style={homeStyles.logo}
-                    />
-                    <IconButton
-                        icon="cog-outline"
-                        size={30}
-                        onPress={() => navigation.navigate('Settings')}
-                    />
-                </View>
+            {/* Main FlatList */}
+            {loading ? (
+                <ActivityIndicator
+                    size="large"
+                    color="#9e3d9c"
+                    style={{ marginTop: 30 }}
+                />
+            ) : (
+                <FlatList
+                    ref={flatListRef}
+                    data={paginatedPosts}
+                    keyExtractor={(item) => item.id}
+                    renderItem={renderPost}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={homeStyles.feed}
+                    refreshControl={
+                        <RefreshControl
+                            refreshing={refreshing}
+                            onRefresh={onRefresh}
+                            colors={["#9e3d9c"]}
+                            tintColor="#9e3d9c"
+                        />
+                    }
+                    ListHeaderComponent={
+                        <>
+                            {/* Header */}
+                            <View style={homeStyles.header}>
+                                <IconButton
+                                    icon="account-circle-outline"
+                                    size={30}
+                                    onPress={() =>
+                                        navigation.navigate("Profile", { userId: authService.getCurrentUser().uid })
+                                    }
+                                />
+                                <Image
+                                    source={require("../assets/img/logoTW.png")}
+                                    style={homeStyles.logo}
+                                />
+                                <IconButton
+                                    icon="cog-outline"
+                                    size={30}
+                                    onPress={() =>
+                                        navigation.navigate("Settings")
+                                    }
+                                />
+                            </View>
 
-                {/* NavBar "For you" / "Following" */}
-                <View style={homeStyles.tabBar}>
-                    <TouchableOpacity onPress={() => handleTabChange("For you")}>
-                        <Text style={[
-                            homeStyles.tab,
-                            activeTab === "For you" && homeStyles.activeTab
-                        ]}>
-                            For you
-                        </Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity onPress={() => handleTabChange("Following")}>
-                        <Text style={[
-                            homeStyles.tab,
-                            activeTab === "Following" && homeStyles.activeTab
-                        ]}>
-                            Following
-                        </Text>
-                    </TouchableOpacity>
-                </View>
+                            {/* Tabs */}
+                            <View style={homeStyles.tabBar}>
+                                <TouchableOpacity
+                                    onPress={() => handleTabChange("For you")}
+                                >
+                                    <Text
+                                        style={[
+                                            homeStyles.tab,
+                                            activeTab === "For you" &&
+                                            homeStyles.activeTab
+                                        ]}
+                                    >
+                                        For you
+                                    </Text>
+                                </TouchableOpacity>
 
-                {/* Message when there are no posts in "Following" */}
-                {activeTab === "Following" && posts.length === 0 && !loading && (
-                    <View style={homeStyles.emptyFollowing}>
-                        <Text style={homeStyles.emptyFollowingTitle}>
-                            No posts from people you follow
-                        </Text>
-                        <Text style={homeStyles.emptyFollowingText}>
-                            When you follow people, you'll see their posts here.
-                        </Text>
-                        <TouchableOpacity
-                            style={homeStyles.exploreButton}
-                            onPress={() => setActiveTab("For you")}
-                        >
-                            <Text style={homeStyles.exploreButtonText}>
-                                Explore posts
+                                <TouchableOpacity
+                                    onPress={() =>
+                                        handleTabChange("Following")
+                                    }
+                                >
+                                    <Text
+                                        style={[
+                                            homeStyles.tab,
+                                            activeTab === "Following" &&
+                                            homeStyles.activeTab
+                                        ]}
+                                    >
+                                        Following
+                                    </Text>
+                                </TouchableOpacity>
+                            </View>
+
+                            {/* Empty Following */}
+                            {activeTab === "Following" &&
+                                posts.length === 0 && (
+                                    <View style={homeStyles.emptyFollowing}>
+                                        <Text
+                                            style={
+                                                homeStyles.emptyText
+                                            }
+                                        >
+                                            No posts from people you follow
+                                        </Text>
+                                        <Text
+                                            style={
+                                                homeStyles.emptyFollowingText
+                                            }
+                                        >
+                                            When you follow people, you'll see
+                                            their posts here.
+                                        </Text>
+                                        <TouchableOpacity
+                                            style={homeStyles.exploreButton}
+                                            onPress={() =>
+                                                setActiveTab("For you")
+                                            }
+                                        >
+                                            <Text
+                                                style={
+                                                    homeStyles.exploreButtonText
+                                                }
+                                            >
+                                                Explore posts
+                                            </Text>
+                                        </TouchableOpacity>
+                                    </View>
+                                )}
+                        </>
+                    }
+                    ListFooterComponent={
+                        <View style={homeStyles.paginationContainer}>
+                            {/* Previous */}
+                            <TouchableOpacity
+                                disabled={page === 1}
+                                onPress={() => setPage((prev) => prev - 1)}
+                                style={[
+                                    homeStyles.paginationButton,
+                                    page === 1 &&
+                                    homeStyles.paginationButtonDisabled
+                                ]}
+                            >
+                                <Text
+                                    style={[
+                                        homeStyles.paginationButtonText,
+                                        page === 1 &&
+                                        homeStyles.paginationButtonTextDisabled
+                                    ]}
+                                >
+                                    Previous
+                                </Text>
+                            </TouchableOpacity>
+
+                            <Text style={homeStyles.paginationText}>
+                                Page {page}
                             </Text>
-                        </TouchableOpacity>
-                    </View>
-                )}
 
-                {/* Feed */}
-                {loading ? (
-                    <ActivityIndicator size="large" color="#9e3d9c" style={{ marginVertical: 20 }} />
-                ) : (
-                    <FlatList
-                        ref={flatListRef}
-                        data={posts}
-                        keyExtractor={(item) => item.id}
-                        renderItem={renderPost}
-                        contentContainerStyle={homeStyles.feed}
-                        showsVerticalScrollIndicator={false}
-                        scrollEnabled={false}
-                        refreshControl={
-                            <RefreshControl
-                                refreshing={refreshing}
-                                onRefresh={onRefresh}
-                                colors={['#9e3d9c']}
-                                tintColor="#9e3d9c"
-                            />
-                        }
-                        ListEmptyComponent={
-                            activeTab === "For you" ? (
-                                <View style={homeStyles.emptyState}>
-                                    <Text style={homeStyles.text}>No posts yet</Text>
-                                    <Text style={homeStyles.text}>Be the first to post something</Text>
-                                </View>
-                            ) : null
-                        }
-                    />
-                )}
-            </ScrollView>
+                            {/* Next */}
+                            <TouchableOpacity
+                                disabled={
+                                    page * POSTS_PER_PAGE >= posts.length
+                                }
+                                onPress={() => setPage((prev) => prev + 1)}
+                                style={[
+                                    homeStyles.paginationButton,
+                                    page * POSTS_PER_PAGE >= posts.length &&
+                                    homeStyles.paginationButtonDisabled
+                                ]}
+                            >
+                                <Text
+                                    style={[
+                                        homeStyles.paginationButtonText,
+                                        page * POSTS_PER_PAGE >= posts.length &&
+                                        homeStyles.paginationButtonTextDisabled
+                                    ]}
+                                >
+                                    Next
+                                </Text>
+                            </TouchableOpacity>
+                        </View>
+                    }
+                />
+            )}
 
             {/* Bottom menu */}
             <View style={homeStyles.menu}>
@@ -286,29 +384,27 @@ export default function Home({ navigation }) {
                     icon="home"
                     size={24}
                     color="#9e3d9c"
-                    onPress={() => navigation.navigate('Home')}
+                    onPress={() => navigation.navigate("Home")}
                 />
                 <IconButton
                     icon="magnify"
                     size={24}
-                    onPress={() => navigation.navigate('Search')}
+                    onPress={() => navigation.navigate("Search")}
                 />
-                <IconButton
-                    icon="bell-outline"
-                    size={24}
+                <IconButton icon="bell-outline" size={24} 
+                    onPress={() => Alert.alert("Notifications", "Notifications functionality is not implemented yet.")}
                 />
-                <IconButton
-                    icon="email-outline"
-                    size={24}
+                <IconButton icon="email-outline" size={24} 
+                    onPress={() => Alert.alert("Message", "Message functionality is not implemented yet.")}
                 />
             </View>
 
-            {/* Floating button to create thread */}
+            {/* Floating Button */}
             <FAB
                 icon="feather"
                 color="white"
                 style={homeStyles.fabCreate}
-                onPress={() => navigation.navigate('CreatePost')}
+                onPress={() => navigation.navigate("CreatePost")}
             />
         </View>
     );

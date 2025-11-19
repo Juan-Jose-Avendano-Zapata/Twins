@@ -12,7 +12,7 @@ export default function Login({ navigation }) {
     const handleLogin = async () => {
         // Validations
         if (!username.trim() || !password.trim()) {
-            Alert.alert('Error', 'Por favor completa todos los campos');
+            Alert.alert('Error', 'Please complete all fields');
             return;
         }
 

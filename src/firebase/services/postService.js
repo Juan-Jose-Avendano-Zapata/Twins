@@ -14,6 +14,7 @@ import {
 } from "firebase/firestore";
 import { db } from "../config/firebase";
 import { authService } from "./authService";
+import { userService } from "./userService";
 
 const postService = {
     // Auxiliary Methods
@@ -41,7 +42,7 @@ const postService = {
     // Get author information
     async getAuthorInfo(authorId) {
         try {
-            const userProfile = await authService.getUserProfile(authorId);
+            const userProfile = await userService.getUserProfile(authorId);
             if (userProfile.success) {
                 return {
                     authorName: userProfile.data.profile?.name || 'User',
@@ -86,15 +87,15 @@ const postService = {
     // Main Methods
 
     // Create post
-    async createPost(content, image = "") {
+    async createPost(content, mediaUrl = "") {
         try {
-            const currentUser = await authService.getCurrentUser();
+            const currentUser = authService.getCurrentUser();
 
             if (!currentUser) {
                 return { success: false, error: 'User not authenticated' };
             }
 
-            const userProfile = await authService.getUserProfile(currentUser.uid);
+            const userProfile = await userService.getUserProfile(currentUser.uid);
 
             if (!userProfile.success) {
                 return { success: false, error: 'Error getting user profile' };
@@ -104,7 +105,7 @@ const postService = {
                 authorId: currentUser.uid,
                 authorRef: `users/${currentUser.uid}`,
                 content: content,
-                image: image,
+                mediaUrl: mediaUrl,
                 createdAt: Timestamp.now(),
                 updatedAt: Timestamp.now(),
                 state: {
@@ -169,13 +170,113 @@ const postService = {
         }
     },
 
+    //Get post By Id
+    async getPostById(postId) {
+        try {
+            const currentUser = authService.getCurrentUser();
+
+            if (!currentUser) {
+                throw new Error("User not authenticated");
+            }
+
+            const postRef = doc(db, "posts", postId);
+            const postDoc = await getDoc(postRef);
+
+            if (!postDoc.exists()) {
+                throw new Error("Post not found");
+            }
+
+            const postData = postDoc.data();
+
+            const authorData = await this.getAuthorInfo(postData.authorId);
+            const userLiked = await this.checkUserLiked(postId, currentUser.uid);
+
+            const post = {
+                id: postDoc.id,
+                ...postData,
+                ...authorData,
+                authorId: postData.authorId, // Asegúrate de incluir esto
+                time: this.formatTime(postData.updatedAt?.toDate?.()),
+                userLiked: userLiked
+            };
+
+            return { success: true, data: post };
+        } catch (e) {
+            console.error('Error getting post by ID', e);
+            return { success: false, error: e.message };
+        }
+    },
+
+    // Get your own Posts
+    async getPostsOwnPosts() {
+        try {
+            const currentUser = authService.getCurrentUser();
+
+            if (!currentUser) {
+                throw new Error("User not authenticated");
+            }
+
+            const postRef = collection(db, "posts");
+            const q = query(
+                postRef,
+                where("authorId", "==", currentUser.uid),
+                orderBy("updatedAt", "desc")
+            );
+
+            const querySnapshot = await getDocs(q);
+            const posts = await Promise.all(querySnapshot.docs.map(async (doc) => {
+                const postData = doc.data();
+                const authorData = await this.getAuthorInfo(postData.authorId);
+                const userLiked = await this.checkUserLiked(doc.id, currentUser.uid);
+                return {
+                    id: doc.id,
+                    ...postData,
+                    ...authorData,
+                    time: this.formatTime(postData.updatedAt?.toDate?.()),
+                    userLiked: userLiked
+                }
+            }));
+
+            return { success: true, data: posts };
+        } catch (e) {
+            console.error('Error getting posts', e);
+            return { success: false, error: e.message };
+        }
+    },
+
+    async getPostsByUser(userId) {
+        try {
+            const currentUser = authService.getCurrentUser();
+            const postsRef = collection(db, 'posts');
+            const q = query(postsRef, where('authorId', '==', userId), orderBy('createdAt', 'desc'));
+            const querySnapshot = await getDocs(q);
+            const posts = await Promise.all(querySnapshot.docs.map(async (doc) => {
+                const postData = doc.data();
+                const authorData = await this.getAuthorInfo(postData.authorId);
+                const userLiked = await this.checkUserLiked(doc.id, currentUser.uid);
+                return {
+                    id: doc.id,
+                    ...postData,
+                    ...authorData,
+                    time: this.formatTime(postData.updatedAt?.toDate?.()),
+                    userLiked: userLiked
+                }
+            }));
+
+            return { success: true, data: posts };
+        } catch (error) {
+            console.error('Error getting posts by user:', error);
+            return { success: false, error: error.message };
+        }
+    },
+
     // Get the follower posts
     async getFollowingPosts() {
         try {
-            const currentUser = await authService.getCurrentUser();
+            const currentUser = authService.getCurrentUser();
             if (!currentUser) throw new Error("User not authenticated");
 
-            const currentUserProfile = await authService.getUserProfile(currentUser.uid);
+            const currentUserProfile = await userService.getUserProfile(currentUser.uid);
             if (!currentUserProfile.success)
                 return { success: false, error: "Error getting user profile" };
 
@@ -297,6 +398,76 @@ const postService = {
             return { success: false, error: e.message };
         }
     },
+
+
+
+    async createComment(postId, content) {
+        try {
+            const currentUser = authService.getCurrentUser();
+
+            if (!currentUser) {
+                return { success: false, error: 'User not authenticated' };
+            }
+
+            const newComment = {
+                authorId: currentUser.uid,
+                authorRef: `users/${currentUser.uid}`,
+                postId: postId,
+                postRef: `posts/${postId}`,
+                content: content,
+                createdAt: Timestamp.now(),
+                updatedAt: Timestamp.now()
+            };
+
+            const commentRef = await addDoc(collection(db, 'comments'), newComment);
+
+
+            const postRef = doc(db, 'posts', postId);
+            await updateDoc(postRef, {
+                'state.comments': increment(1)
+            });
+
+            return {
+                success: true,
+                data: {
+                    id: commentRef.id,
+                    ...newComment,
+                    createdAt: newComment.createdAt.toDate(),
+                    updatedAt: newComment.updatedAt.toDate()
+                }
+            };
+        } catch (e) {
+            console.error('Error creating comment:', e);
+            return { success: false, error: e.message };
+        }
+    },
+
+    async getCommentsByPostId(postId) {
+        try {
+            const commentsRef = collection(db, 'comments');
+            const q = query(
+                commentsRef,
+                orderBy('createdAt', 'desc')
+            );
+
+            const querySnapshot = await getDocs(q);
+
+            const filteredComments = querySnapshot.docs.filter(doc =>
+                doc.data().postId === postId 
+            );
+
+            const comments = filteredComments.map(doc => ({
+                id: doc.id,
+                ...doc.data(),
+                time: this.formatTime(doc.data().createdAt?.toDate?.()),
+            }));
+
+            return { success: true, data: comments };
+        } catch (e) {
+            console.error('Error getting comments:', e);
+            return { success: false, error: e.message };
+        }
+    }
 }
 
 export { postService };
