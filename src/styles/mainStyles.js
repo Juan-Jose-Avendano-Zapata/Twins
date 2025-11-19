@@ -29,7 +29,7 @@ const mainStyles = StyleSheet.create({
         width: '100%',
     },
 
-    googleButton: {
+    loginButton: {
         ...baseStyles.button,
         ...baseStyles.buttonSecondary,
     },
@@ -44,7 +44,7 @@ const mainStyles = StyleSheet.create({
         ...baseStyles.buttonContent,
     },
 
-    googleButtonLabel: {
+    loginButtonLabel: {
         ...baseStyles.buttonLabel,
         ...baseStyles.buttonLabelSecondary,
     },
@@ -76,24 +76,6 @@ const mainStyles = StyleSheet.create({
         ...baseStyles.caption,
         textAlign: 'center',
         lineHeight: 16,
-    },
-
-    loginContainer: {
-        flexDirection: 'row',
-        justifyContent: 'center',
-        marginTop: 'auto',
-        paddingTop: theme.Spacing.xlarge,
-    },
-
-    loginText: {
-        ...baseStyles.caption,
-        fontSize: theme.Typography.body.fontSize,
-    },
-
-    loginLink: {
-        color: theme.Colors.primaryLight,
-        fontSize: theme.Typography.body.fontSize,
-        fontWeight: 'bold',
     },
 });
 

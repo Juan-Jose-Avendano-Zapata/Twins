@@ -18,18 +18,16 @@ export default function Main({ navigation }) {
             {/* Buttons Section */}
             <View style={mainStyles.buttonsContainer}>
 
-                {/* Google Sign-In Button*/}
+                {/* Login Button*/}
                 <Button
                     mode="contained"
-                    style={mainStyles.googleButton}
+                    style={mainStyles.loginButton}
                     contentStyle={mainStyles.buttonContent}
-                    labelStyle={mainStyles.googleButtonLabel}
-                    icon={require('../assets/img/googleicon.png')}
-                    onPress={() => { }}
+                    labelStyle={mainStyles.loginButtonLabel}
+                    onPress={() => navigation.navigate('Login')}
                 >
-                    Continue with Google
+                    Login
                 </Button>
-
                 {/* Divider */}
                 <View style={mainStyles.dividerContainer}>
                     <View style={mainStyles.dividerLine} />
@@ -52,12 +50,6 @@ export default function Main({ navigation }) {
                 <Text style={mainStyles.termsText}>
                     By signing up, you agree to our Terms, Privacy Policy, and Cookie Use.
                 </Text>
-            </View>
-
-            {/* Login Section */}
-            <View style={mainStyles.loginContainer}>
-                <Text style={mainStyles.loginText}>Have an account already? </Text>
-                <Text style={mainStyles.loginLink} onPress={() => navigation.navigate('Login')}>Log in</Text>
             </View>
         </ScrollView>
     );
