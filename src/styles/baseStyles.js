@@ -2,7 +2,7 @@ import { StyleSheet } from 'react-native';
 import { theme } from './theme';
 
 export const baseStyles = StyleSheet.create({
-    // Contenedores
+    // Containers
     container: {
         flexGrow: 1,
         backgroundColor: theme.Colors.background,
@@ -11,7 +11,7 @@ export const baseStyles = StyleSheet.create({
         paddingBottom: 40,
     },
 
-    // Botones
+    // Buttons
     button: {
         borderRadius: 25,
         marginBottom: theme.Spacing.medium,
@@ -43,7 +43,7 @@ export const baseStyles = StyleSheet.create({
         color: '#000',
     },
 
-    // Textos
+    // Text
     title: {
         color: theme.Colors.text.primary,
         fontSize: theme.Typography.title.fontSize,

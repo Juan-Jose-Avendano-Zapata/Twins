@@ -11,7 +11,7 @@ const followStyles = StyleSheet.create({
     // Header styles
     headerTitle: {
         ...baseStyles.title,
-        fontSize: theme.Typography.title.fontSize - 4,
+        fontSize: theme.Typography.title.fontSize - 10,
         fontWeight: 'bold',
         textAlign: 'center',
     },
@@ -120,6 +120,44 @@ const followStyles = StyleSheet.create({
         color: theme.Colors.text.secondary,
         textAlign: 'center',
     },
+
+    paginationContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: theme.Spacing.container,
+    paddingVertical: theme.Spacing.medium,
+    },
+
+    paginationButton: {
+        paddingHorizontal: theme.Spacing.medium,
+        paddingVertical: theme.Spacing.small,
+        borderRadius: 20,
+        backgroundColor: theme.Colors.primary,
+        minWidth: 90,
+        alignItems: "center",
+    },
+
+    paginationButtonDisabled: {
+        backgroundColor: theme.Colors.surface,
+    },
+
+    paginationButtonText: {
+        ...baseStyles.buttonLabel,
+        fontWeight: "bold",
+        color: theme.Colors.text.primary,
+    },
+
+    paginationButtonTextDisabled: {
+        color: theme.Colors.text.secondary,
+    },
+
+    paginationText: {
+        ...baseStyles.body,
+        fontSize: theme.Typography.body.fontSize,
+        color: theme.Colors.text.secondary,
+    },
+
 });
 
 export default followStyles;
